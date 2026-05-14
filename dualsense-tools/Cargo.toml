@@ -1,0 +1,9 @@
+[package]
+name = "dualsense-tools"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hidapi = "2.6.5"
+glam = "0.32.1"
+circular-buffer = "1.2.0"

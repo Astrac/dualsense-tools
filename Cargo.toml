@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "dualsense-tools",
+    "dualsense-tools-bevy",
+    # "dualsense-tools-vgc",
+]
+resolver = "2"
