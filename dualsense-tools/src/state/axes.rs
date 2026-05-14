@@ -1,5 +1,5 @@
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
-pub struct PadAxes<V> {
+pub struct DualsenseAxes<V> {
     pub x: V,
     pub y: V,
     pub z: V,

@@ -55,12 +55,12 @@ fn render(state: DualsenseState) -> impl FnMut(&mut Frame) {
         let title = Line::from_iter([Span::from("Dualsense Status").bold()]);
         frame.render_widget(title.centered(), top);
 
-        render_line_gauge(frame, accel_x, "Accel X", state.accel.x);
-        render_line_gauge(frame, accel_y, "Accel Y", state.accel.y);
-        render_line_gauge(frame, accel_z, "Accel Z", state.accel.z);
-        render_line_gauge(frame, gyro_x, "Gyro X", state.gyro.x);
-        render_line_gauge(frame, gyro_y, "Gyro Y", state.gyro.y);
-        render_line_gauge(frame, gyro_z, "Gyro Z", state.gyro.z);
+        render_line_gauge(frame, accel_x, "Accel X", state.accel.x.as_i16());
+        render_line_gauge(frame, accel_y, "Accel Y", state.accel.y.as_i16());
+        render_line_gauge(frame, accel_z, "Accel Z", state.accel.z.as_i16());
+        render_line_gauge(frame, gyro_x, "Gyro X", state.gyro.x.as_i16());
+        render_line_gauge(frame, gyro_y, "Gyro Y", state.gyro.y.as_i16());
+        render_line_gauge(frame, gyro_z, "Gyro Z", state.gyro.z.as_i16());
     }
 }
 

@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use super::{AxisId, ButtonEventKind, ButtonId, Event};
+use super::event::Event;
+use crate::control::{AxisId, ButtonId};
+use crate::state::DualsenseAxisValue;
 use crate::{events::determinator_config::DeterminatorConfig, state::DualsenseState};
 
 #[derive(Clone, Debug)]
@@ -72,13 +74,18 @@ impl<const TILT_SAMPLES: usize> EventsDeterminator<TILT_SAMPLES> {
 
 fn button_event(id: ButtonId, old: bool, new: bool, events: &mut Vec<Event>) {
     if !old && new {
-        events.push(Event::Button(id, ButtonEventKind::Pressed))
+        events.push(Event::ButtonPressed(id))
     } else if old && !new {
-        events.push(Event::Button(id, ButtonEventKind::Released))
+        events.push(Event::ButtonReleased(id))
     }
 }
 
-fn axis_event(id: AxisId, old: u8, new: u8, events: &mut Vec<Event>) {
+fn axis_event(
+    id: AxisId,
+    old: DualsenseAxisValue,
+    new: DualsenseAxisValue,
+    events: &mut Vec<Event>,
+) {
     if old != new {
         events.push(Event::AxisChanged(id, new))
     }

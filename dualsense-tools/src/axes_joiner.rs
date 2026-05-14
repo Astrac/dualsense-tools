@@ -10,6 +10,6 @@ impl AxesJoiner {
         let negative = state.get_axis(self.negative);
         let positive = state.get_axis(self.positive);
 
-        positive as i16 - negative as i16
+        positive.as_u8() as i16 - negative.as_u8() as i16
     }
 }

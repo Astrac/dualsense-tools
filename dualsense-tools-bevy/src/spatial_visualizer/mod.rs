@@ -2,7 +2,7 @@ use bevy::camera::primitives::Aabb;
 use bevy::prelude::*;
 use bevy_third_person_camera::ThirdPersonCameraTarget;
 use bevy_third_person_camera::*;
-use dualsense_tools::{Dualsense, Tilt, TiltEstimator, state::DualsenseState};
+use dualsense_tools::{Dualsense, Tilt, TiltEstimator};
 use std::sync::{Arc, Mutex};
 
 #[derive(Resource)]

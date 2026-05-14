@@ -5,7 +5,7 @@ use glam::{Quat, Vec3};
 
 use crate::{
     AsTilt, Tilt, TiltEstimates,
-    state::{Accel, Gyro},
+    state::{Accel, DualsenseSensorValue, Gyro},
     tilt_estimator::TiltEstimatorConfig,
 };
 
@@ -39,8 +39,8 @@ impl<const N: usize> TiltEstimator<N> {
     /// Computes the next estimates and updates the internal state
     pub fn next_estimate(
         &mut self,
-        accel: &Accel<i16>,
-        gyro: &Gyro<i16>,
+        accel: &Accel<DualsenseSensorValue>,
+        gyro: &Gyro<DualsenseSensorValue>,
         delta_t: &Duration,
     ) -> TiltEstimates {
         let accel_vec = accel.raw_vec();

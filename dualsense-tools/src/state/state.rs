@@ -1,10 +1,13 @@
-use crate::control::{AxisId, ButtonId};
+use crate::{
+    control::{AxisId, ButtonId},
+    state::{DualsenseAxisValue, DualsenseSensorValue},
+};
 
-use super::{Accel, Gyro, HatDirection, PadAxes};
+use super::{Accel, DualsenseAxes, Gyro, HatDirection};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct DualsenseState {
-    pub axes: PadAxes<u8>,
+    pub axes: DualsenseAxes<DualsenseAxisValue>,
     pub hat: HatDirection,
     pub triangle: bool,
     pub circle: bool,
@@ -21,18 +24,18 @@ pub struct DualsenseState {
     pub ps: bool,
     pub touch_click: bool,
     pub mic: bool,
-    pub gyro: Gyro<i16>,
-    pub accel: Accel<i16>,
+    pub gyro: Gyro<DualsenseSensorValue>,
+    pub accel: Accel<DualsenseSensorValue>,
 }
 
 impl DualsenseState {
     pub fn update_from_hid_report(&mut self, report: &[u8; 64]) -> () {
-        self.axes.x = report[1];
-        self.axes.y = report[2];
-        self.axes.rx = report[3];
-        self.axes.ry = report[4];
-        self.axes.z = report[5];
-        self.axes.rz = report[6];
+        self.axes.x = report[1].into();
+        self.axes.y = report[2].into();
+        self.axes.rx = report[3].into();
+        self.axes.ry = report[4].into();
+        self.axes.z = report[5].into();
+        self.axes.rz = report[6].into();
         self.hat = report[8].into();
         self.triangle = (report[8] & 0b10000000) != 0;
         self.circle = (report[8] & 0b01000000) != 0;
@@ -49,12 +52,12 @@ impl DualsenseState {
         self.ps = (report[10] & 0b00000001) != 0;
         self.touch_click = (report[10] & 0b00000010) != 0;
         self.mic = (report[10] & 0b00000100) != 0;
-        self.gyro.x = i16::from_le_bytes([report[16], report[17]]);
-        self.gyro.y = i16::from_le_bytes([report[18], report[19]]);
-        self.gyro.z = i16::from_le_bytes([report[20], report[21]]);
-        self.accel.x = i16::from_le_bytes([report[22], report[23]]);
-        self.accel.y = i16::from_le_bytes([report[24], report[25]]);
-        self.accel.z = i16::from_le_bytes([report[26], report[27]]);
+        self.gyro.x = i16::from_le_bytes([report[16], report[17]]).into();
+        self.gyro.y = i16::from_le_bytes([report[18], report[19]]).into();
+        self.gyro.z = i16::from_le_bytes([report[20], report[21]]).into();
+        self.accel.x = i16::from_le_bytes([report[22], report[23]]).into();
+        self.accel.y = i16::from_le_bytes([report[24], report[25]]).into();
+        self.accel.z = i16::from_le_bytes([report[26], report[27]]).into();
     }
 
     pub fn from_hid_report(self, report: &[u8; 64]) -> DualsenseState {
@@ -63,7 +66,7 @@ impl DualsenseState {
         state
     }
 
-    pub fn get_axis(&self, id: AxisId) -> u8 {
+    pub fn get_axis(&self, id: AxisId) -> DualsenseAxisValue {
         match id {
             AxisId::LX => self.axes.x,
             AxisId::LY => self.axes.y,
