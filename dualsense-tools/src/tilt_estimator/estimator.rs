@@ -46,10 +46,7 @@ impl<const N: usize> TiltEstimator<N> {
         let accel_vec = accel.raw_vec();
         self.accel_samples_sum += accel_vec;
 
-        match self.accel_samples.push_back(accel_vec) {
-            Some(outdated) => self.accel_samples_sum -= outdated,
-            None => (),
-        }
+        if let Some(outdated) = self.accel_samples.push_back(accel_vec) { self.accel_samples_sum -= outdated }
 
         let accel_avg =
             Accel::<f32>::from_vec(self.accel_samples_sum / (self.accel_samples.len() as f32));

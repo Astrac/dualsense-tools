@@ -36,8 +36,8 @@ impl From<i16> for DualsenseSensorValue {
     }
 }
 
-impl Into<f32> for DualsenseSensorValue {
-    fn into(self) -> f32 {
-        self.0 as f32
+impl From<DualsenseSensorValue> for f32 {
+    fn from(val: DualsenseSensorValue) -> Self {
+        val.0 as f32
     }
 }

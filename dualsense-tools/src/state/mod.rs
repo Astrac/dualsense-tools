@@ -1,15 +1,15 @@
+mod accel;
 mod axes;
-mod state;
+mod dualense_state;
+mod gyro;
 mod hat;
 mod spatial_sensor;
-mod accel;
-mod gyro;
 mod values;
 
+pub use accel::Accel;
 pub use axes::DualsenseAxes;
-pub use state::DualsenseState;
+pub use dualense_state::DualsenseState;
+pub use gyro::Gyro;
 pub use hat::HatDirection;
 pub use spatial_sensor::SpatialSensor;
-pub use accel::Accel;
-pub use gyro::Gyro;
 pub use values::{DualsenseAxisValue, DualsenseSensorValue};

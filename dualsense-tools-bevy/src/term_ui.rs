@@ -19,11 +19,10 @@ pub fn run(ds: Arc<Mutex<Dualsense>>) -> color_eyre::Result<()> {
         loop {
             let state = ds.lock().unwrap().read()?;
             terminal.draw(render(state))?;
-            if event::poll(Duration::from_millis(10))? {
-                if event::read()?.is_key_press() {
+            if event::poll(Duration::from_millis(10))?
+                && event::read()?.is_key_press() {
                     break Ok(());
                 }
-            }
         }
     })
 }

@@ -29,7 +29,7 @@ pub struct DualsenseState {
 }
 
 impl DualsenseState {
-    pub fn update_from_hid_report(&mut self, report: &[u8; 64]) -> () {
+    pub fn update_from_hid_report(&mut self, report: &[u8; 64]) {
         self.axes.x = report[1].into();
         self.axes.y = report[2].into();
         self.axes.rx = report[3].into();

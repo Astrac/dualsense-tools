@@ -51,9 +51,11 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mut camera_settings = ThirdPersonCamera::default();
-    camera_settings.mouse_orbit_button_enabled = true;
-    camera_settings.mouse_orbit_button = MouseButton::Right;
+    let camera_settings = ThirdPersonCamera {
+        mouse_orbit_button_enabled: true,
+        mouse_orbit_button: MouseButton::Right,
+        ..Default::default()
+    };
 
     commands.spawn((
         Camera3d::default(),
