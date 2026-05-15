@@ -2,6 +2,8 @@
 members = [
     "dualsense-tools",
     "dualsense-tools-bevy",
+    "vhid",
+    "dualsense-tilt-and-throttle"
     # "dualsense-tools-vgc",
 ]
 resolver = "2"

@@ -1,5 +1,4 @@
 mod as_tilt;
-mod axes_joiner;
 mod dualsense;
 mod tilt;
 mod tilt_estimator;
@@ -10,7 +9,7 @@ pub mod state;
 
 pub use as_tilt::AsTilt;
 pub use dualsense::Dualsense;
-pub use tilt::Tilt;
+pub use tilt::{Radians, Tilt};
 pub use tilt_estimator::{TiltEstimates, TiltEstimator, TiltEstimatorConfig};
 
 /// Dualsense HID device vendor identifier

@@ -1,0 +1,10 @@
+[package]
+name = "dualsense-tilt-and-throttle"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hidapi = "2.6.5"
+dualsense-tools = { path = "../dualsense-tools/" }
+color-eyre = "0.6.5"
+ratatui = "0.30.0"

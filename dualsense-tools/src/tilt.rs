@@ -13,11 +13,26 @@ impl Tilt {
         Tilt { quat }
     }
 
-    pub fn get_roll_radians(&self) -> f32 {
-        self.quat.angle_between(Quat::from_scaled_axis(Vec3::Z))
+    pub fn get_roll_radians(&self) -> Radians {
+        Radians(-self.quat.to_scaled_axis().dot(Vec3::Z))
     }
 
-    pub fn get_pitch_radians(&self) -> f32 {
-        self.quat.angle_between(Quat::from_scaled_axis(Vec3::X))
+    pub fn get_pitch_radians(&self) -> Radians {
+        Radians(self.quat.to_scaled_axis().dot(Vec3::X))
+    }
+}
+
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
+pub struct Radians(f32);
+
+impl Radians {
+    pub fn get_angle(&self) -> f32 {
+        self.0
+    }
+}
+
+impl Into<Radians> for f32 {
+    fn into(self) -> Radians {
+        Radians(self)
     }
 }
