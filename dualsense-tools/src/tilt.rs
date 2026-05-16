@@ -31,8 +31,8 @@ impl Radians {
     }
 }
 
-impl Into<Radians> for f32 {
-    fn into(self) -> Radians {
-        Radians(self)
+impl From<f32> for Radians {
+    fn from(val: f32) -> Self {
+        Radians(val)
     }
 }

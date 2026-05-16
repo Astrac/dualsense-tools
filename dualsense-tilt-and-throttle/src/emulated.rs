@@ -27,9 +27,9 @@ pub enum EmulatedHat {
     Neutral,
 }
 
-impl Into<EmulatedHat> for HatDirection {
-    fn into(self) -> EmulatedHat {
-        match self {
+impl From<HatDirection> for EmulatedHat {
+    fn from(val: HatDirection) -> Self {
+        match val {
             HatDirection::Up => EmulatedHat::Up,
             HatDirection::UpRight => EmulatedHat::UpRight,
             HatDirection::Right => EmulatedHat::Right,

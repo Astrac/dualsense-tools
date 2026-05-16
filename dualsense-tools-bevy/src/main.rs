@@ -1,5 +1,4 @@
-mod spatial_visualizer;
-mod term_ui;
+mod scene;
 
 use dualsense_tools::{Dualsense, TiltEstimator, TiltEstimatorConfig};
 use hidapi::HidApi;
@@ -10,6 +9,6 @@ fn main() -> color_eyre::Result<()> {
     let mut hid_api = HidApi::new()?;
     let ds = Arc::new(Mutex::new(Dualsense::new(&mut hid_api)?));
     let estimator = TiltEstimator::<5>::new(TiltEstimatorConfig::default());
-    spatial_visualizer::scene(ds, estimator);
+    scene::scene(ds, estimator);
     Ok(())
 }
