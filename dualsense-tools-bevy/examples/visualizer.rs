@@ -2,8 +2,7 @@ use bevy::camera::primitives::Aabb;
 use bevy::prelude::*;
 use bevy_third_person_camera::ThirdPersonCameraTarget;
 use bevy_third_person_camera::*;
-
-use crate::plugin::{DualsenseTiltPlugin, DualsenseTilt};
+use dualsense_tools_bevy::{DualsenseTilt, DualsenseTiltPlugin};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum TiltAlg {
@@ -21,7 +20,13 @@ struct GamepadBound {
 #[derive(Component)]
 struct ShowAxes;
 
-pub fn scene<const BUFSIZE: usize>() {
+fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
+    scene::<10>();
+    Ok(())
+}
+
+fn scene<const BUFSIZE: usize>() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(ThirdPersonCameraPlugin)
