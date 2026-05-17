@@ -5,9 +5,6 @@ edition = "2024"
 
 [dependencies]
 hidapi = "2.6.5"
-color-eyre = "0.6.5"
-ratatui = "0.30.0"
 bevy = { version = "0.18.1", features = ["glam_assert"] }
-bevy_third_person_camera = "0.4.0"
 glam = "0.32.1"
 dualsense-tools = { path = "../dualsense-tools/" }
