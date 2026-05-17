@@ -2,8 +2,6 @@ use bevy::camera::primitives::Aabb;
 use bevy::prelude::*;
 use bevy_third_person_camera::ThirdPersonCameraTarget;
 use bevy_third_person_camera::*;
-use dualsense_tools::Dualsense;
-use std::sync::{Arc, Mutex};
 
 use crate::plugin::{DualsenseTiltPlugin, DualsenseTilt};
 
@@ -23,11 +21,11 @@ struct GamepadBound {
 #[derive(Component)]
 struct ShowAxes;
 
-pub fn scene<const BUFSIZE: usize>(dualsense: Arc<Mutex<Dualsense>>) {
+pub fn scene<const BUFSIZE: usize>() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(ThirdPersonCameraPlugin)
-        .add_plugins(DualsenseTiltPlugin::<BUFSIZE>::new(dualsense))
+        .add_plugins(DualsenseTiltPlugin::<BUFSIZE>)
         .add_systems(Startup, setup)
         .add_systems(Update, update::<BUFSIZE>)
         .add_systems(Update, draw_axes)
