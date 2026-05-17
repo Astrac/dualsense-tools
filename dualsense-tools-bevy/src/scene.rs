@@ -2,22 +2,17 @@ use bevy::camera::primitives::Aabb;
 use bevy::prelude::*;
 use bevy_third_person_camera::ThirdPersonCameraTarget;
 use bevy_third_person_camera::*;
-use dualsense_tools::{Dualsense, Tilt, TiltEstimator};
+use dualsense_tools::Dualsense;
 use std::sync::{Arc, Mutex};
 
-#[derive(Resource)]
-struct GamepadRes(Arc<Mutex<Dualsense>>);
-
-#[derive(Resource)]
-struct TiltEstimatorRes<const BUFSIZE: usize>(TiltEstimator<BUFSIZE>);
+use crate::plugin::{DualsenseTiltPlugin, DualsenseTilt};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum TiltAlg {
-    RawAccel,
-    RawGyro,
-    AccelQuaternion,
-    GyroQuaternion,
-    Integrated,
+    AccelAverage,
+    AccelInstant,
+    AccelCorrectedGyro,
+    GyroInstant,
 }
 
 #[derive(Component)]
@@ -26,20 +21,13 @@ struct GamepadBound {
 }
 
 #[derive(Component)]
-struct Diagnostics;
-
-#[derive(Component)]
 struct ShowAxes;
 
-pub fn scene<const BUFSIZE: usize>(
-    dualsense: Arc<Mutex<Dualsense>>,
-    tilt_estimator: TiltEstimator<BUFSIZE>,
-) {
+pub fn scene<const BUFSIZE: usize>(dualsense: Arc<Mutex<Dualsense>>) {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(ThirdPersonCameraPlugin)
-        .insert_resource(GamepadRes(dualsense))
-        .insert_resource(TiltEstimatorRes(tilt_estimator))
+        .add_plugins(DualsenseTiltPlugin::<BUFSIZE>::new(dualsense))
         .add_systems(Startup, setup)
         .add_systems(Update, update::<BUFSIZE>)
         .add_systems(Update, draw_axes)
@@ -71,9 +59,9 @@ fn setup(
             ..default()
         })),
         ThirdPersonCameraTarget,
-        Transform::from_xyz(0.0, 1., 0.0),
+        Transform::from_xyz(-2., 1., 0.0),
         GamepadBound {
-            tilt_alg: TiltAlg::AccelQuaternion,
+            tilt_alg: TiltAlg::AccelInstant,
         },
         ShowAxes,
     ));
@@ -81,14 +69,29 @@ fn setup(
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::default())),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(1., 0., 0.),
+            base_color: Color::srgb(0., 0., 1.),
+            metallic: 0.8,
+            ..default()
+        })),
+        ThirdPersonCameraTarget,
+        Transform::from_xyz(0., 1., 0.),
+        GamepadBound {
+            tilt_alg: TiltAlg::GyroInstant,
+        },
+        ShowAxes,
+    ));
+
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::default())),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(0., 1., 0.),
             metallic: 0.8,
             ..default()
         })),
         ThirdPersonCameraTarget,
         Transform::from_xyz(2., 1., 0.),
         GamepadBound {
-            tilt_alg: TiltAlg::GyroQuaternion,
+            tilt_alg: TiltAlg::AccelAverage,
         },
         ShowAxes,
     ));
@@ -96,60 +99,19 @@ fn setup(
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::default())),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(1., 0., 0.),
+            base_color: Color::srgb(0., 1., 1.),
             metallic: 0.8,
             ..default()
         })),
         ThirdPersonCameraTarget,
-        Transform::from_xyz(-2., 1., 0.),
+        Transform::from_xyz(0., -1., 0.),
         GamepadBound {
-            tilt_alg: TiltAlg::Integrated,
-        },
-        ShowAxes,
-    ));
-
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0., 1., 0.),
-            metallic: 0.8,
-            ..default()
-        })),
-        ThirdPersonCameraTarget,
-        Transform::from_xyz(-1., -1., 0.),
-        GamepadBound {
-            tilt_alg: TiltAlg::RawAccel,
-        },
-        ShowAxes,
-    ));
-
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0., 1., 0.),
-            metallic: 0.8,
-            ..default()
-        })),
-        ThirdPersonCameraTarget,
-        Transform::from_xyz(1., -1., 0.),
-        GamepadBound {
-            tilt_alg: TiltAlg::RawGyro,
+            tilt_alg: TiltAlg::AccelCorrectedGyro,
         },
         ShowAxes,
     ));
 
     commands.spawn((PointLight::default(), Transform::from_xyz(3.0, 8.0, 5.0)));
-
-    commands.spawn((
-        Text::new(""),
-        Node {
-            position_type: PositionType::Absolute,
-            top: px(12),
-            left: px(12),
-            ..default()
-        },
-        Diagnostics,
-    ));
 }
 
 fn draw_axes(mut gizmos: Gizmos, query: Query<(&Transform, &Aabb), With<ShowAxes>>) {
@@ -159,26 +121,14 @@ fn draw_axes(mut gizmos: Gizmos, query: Query<(&Transform, &Aabb), With<ShowAxes
     }
 }
 
-fn update<const S: usize>(
-    gamepad: Res<GamepadRes>,
-    tilt_estimator: ResMut<TiltEstimatorRes<S>>,
-    cubes: Query<(&mut Transform, &GamepadBound)>,
-    time: Res<Time>,
-) {
-    let state = gamepad.0.lock().unwrap().read().unwrap();
-    let estimates =
-        tilt_estimator
-            .into_inner()
-            .0
-            .next_estimate(&state.accel, &state.gyro, &time.delta());
-
+fn update<const S: usize>(tilt: Res<DualsenseTilt>, cubes: Query<(&mut Transform, &GamepadBound)>) {
     for (mut transform, config) in cubes {
+        let estimates = tilt.estimates();
         let new_tilt = match config.tilt_alg {
-            TiltAlg::AccelQuaternion => estimates.accel,
-            TiltAlg::GyroQuaternion => Tilt::default(),
-            TiltAlg::RawAccel => Tilt::default(),
-            TiltAlg::RawGyro => estimates.integrated_gyro,
-            TiltAlg::Integrated => estimates.fused,
+            TiltAlg::AccelAverage => estimates.accel_avg,
+            TiltAlg::AccelInstant => estimates.accel_instant,
+            TiltAlg::GyroInstant => estimates.gyro_instant,
+            TiltAlg::AccelCorrectedGyro => estimates.accel_corrected_gyro,
         };
 
         transform.rotation = Quat::from_array(new_tilt.quat.to_array());

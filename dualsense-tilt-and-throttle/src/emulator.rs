@@ -44,7 +44,7 @@ impl<const N: usize> Iterator for Emulator<N> {
                 &ds_state.gyro,
                 &self.current_timestamp.duration_since(self.last_timestamp),
             )
-            .fused;
+            .accel_corrected_gyro;
 
         let throttle: i8 =
             ((ds_state.axes.rz.as_u8() / 2) as i8) - ((ds_state.axes.z.as_u8() / 2) as i8);

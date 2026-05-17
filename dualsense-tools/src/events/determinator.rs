@@ -58,8 +58,8 @@ impl<const TILT_SAMPLES: usize> EventsDeterminator<TILT_SAMPLES> {
         match &mut self.config.tilt_estimator {
             None => (),
             Some(e) => {
-                let last_tilt = e.current().fused;
-                let cur_tilt = e.next_estimate(&cur.accel, &cur.gyro, &dt).fused;
+                let last_tilt = e.current().accel_corrected_gyro;
+                let cur_tilt = e.next_estimate(&cur.accel, &cur.gyro, &dt).accel_corrected_gyro;
                 if last_tilt != cur_tilt {
                     events.push(Event::TiltEstimateUpdted(cur_tilt));
                 }

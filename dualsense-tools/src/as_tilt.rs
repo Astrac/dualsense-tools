@@ -36,9 +36,7 @@ where
     fn as_tilt(&self) -> Tilt {
         Tilt::new(Quat::from_rotation_arc(
             GRAVITY,
-            Vec3::new(self.z.into(), self.y.into(), -self.x.into())
-                .normalize_or_zero()
-                .rotate_z(PI),
+            Vec3::new(self.z.into(), self.y.into(), -self.x.into()).normalize_or_zero(),
         ))
     }
 }

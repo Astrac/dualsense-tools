@@ -46,29 +46,27 @@ impl<const N: usize> TiltEstimator<N> {
         let accel_vec = accel.raw_vec();
         self.accel_samples_sum += accel_vec;
 
-        if let Some(outdated) = self.accel_samples.push_back(accel_vec) { self.accel_samples_sum -= outdated }
+        if let Some(outdated) = self.accel_samples.push_back(accel_vec) {
+            self.accel_samples_sum -= outdated
+        }
 
         let accel_avg =
             Accel::<f32>::from_vec(self.accel_samples_sum / (self.accel_samples.len() as f32));
 
         let accel_tilt = accel_avg.as_tilt();
 
-        let gyro_norm: Tilt;
-        let gyro_quat: Quat;
         let fused_tilt: Tilt;
 
         if self.config.use_gyro_integration {
             let gyro_length = gyro.raw_vec().length();
-            gyro_norm = gyro.as_tilt();
+            let gyro_norm = gyro.as_tilt();
 
             let gyro_dquat = Quat::from_axis_angle(
                 gyro_norm.quat.to_scaled_axis().normalize_or_zero(),
-                f32::to_radians(gyro_length)
-                    * delta_t.as_secs_f32()
-                    * self.config.integration_dampening,
+                f32::to_radians(gyro_length) * delta_t.as_secs_f32(),
             );
 
-            gyro_quat = self.current.fused.quat.mul_quat(gyro_dquat);
+            let gyro_quat = self.current.accel_corrected_gyro.quat.mul_quat(gyro_dquat);
 
             fused_tilt = Tilt::new(
                 accel_tilt
@@ -76,16 +74,14 @@ impl<const N: usize> TiltEstimator<N> {
                     .slerp(gyro_quat, self.config.correction_alpha),
             );
         } else {
-            gyro_norm = Tilt::default();
-            gyro_quat = Quat::from_xyzw(1., 0., 0., 0.);
             fused_tilt = accel_tilt;
         }
 
         self.current = TiltEstimates {
-            accel: accel_tilt,
-            gyro: gyro_norm,
-            integrated_gyro: Tilt::new(gyro_quat),
-            fused: fused_tilt,
+            accel_avg: accel_tilt,
+            accel_instant: accel.as_tilt(),
+            gyro_instant: gyro.as_tilt(),
+            accel_corrected_gyro: fused_tilt,
         };
 
         self.current
