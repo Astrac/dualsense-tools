@@ -4,7 +4,6 @@ mod tilt;
 mod tilt_estimator;
 
 pub mod control;
-pub mod events;
 pub mod state;
 
 pub use as_tilt::AsTilt;
