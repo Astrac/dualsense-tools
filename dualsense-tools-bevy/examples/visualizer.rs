@@ -31,7 +31,7 @@ fn scene<const BUFSIZE: usize>() {
         }))
         .add_plugins(DualsenseTiltPlugin::<BUFSIZE>)
         .add_systems(Startup, setup)
-        .add_systems(Update, update::<BUFSIZE>)
+        .add_systems(Update, update)
         .add_systems(Update, draw_axes)
         .add_systems(Update, attach_labels)
         .run();
@@ -177,7 +177,7 @@ fn draw_axes(mut gizmos: Gizmos, query: Query<(&Transform, &Aabb), With<ShowAxes
     }
 }
 
-fn update<const S: usize>(tilt: Res<DualsenseTilt>, cubes: Query<(&mut Transform, &GamepadBound)>) {
+fn update(tilt: Res<DualsenseTilt>, cubes: Query<(&mut Transform, &GamepadBound)>) {
     for (mut transform, config) in cubes {
         let estimates = tilt.estimates();
         let new_tilt = match config.tilt_alg {
