@@ -8,6 +8,12 @@ pub struct SpatialSensor<V> {
     pub z: V,
 }
 
+impl<V> SpatialSensor<V> {
+    pub fn new(x: V, y: V, z: V) -> SpatialSensor<V> {
+        SpatialSensor { x, y, z }
+    }
+}
+
 impl<V> SpatialSensor<V>
 where
     V: Into<f32> + Copy,

@@ -94,10 +94,10 @@ impl<const N: usize> TiltEstimator<N> {
 const GRAVITY: Vec3 = Vec3::new(0., -1., 0.);
 
 /// Returns the quaternion representing the rotation of the gyroscope unit-vector.
-fn normalized_gyro_quat<T: Into<f32> + Copy>(accel: &Gyro<T>) -> Quat {
+fn normalized_gyro_quat<T: Into<f32> + Copy>(gyro: &Gyro<T>) -> Quat {
     Quat::from_rotation_arc(
         GRAVITY,
-        Vec3::new(accel.z.into(), accel.y.into(), -accel.x.into()).normalize_or_zero(),
+        Vec3::new(gyro.z.into(), gyro.y.into(), -gyro.x.into()).normalize_or_zero(),
     )
 }
 
@@ -109,4 +109,52 @@ fn normalized_accel_quat<T: Into<f32> + Copy>(accel: &Accel<T>) -> Quat {
             .normalize_or_zero()
             .rotate_z(PI),
     )
+}
+
+#[test]
+fn test_normalized_gyro_quat() {
+    let examples: [(Gyro<f32>, Quat); 4] = [
+        (Gyro::new(0., 0., 0.), Quat::default()),
+        (
+            Gyro::new(10., 0., 0.),
+            Quat::from_axis_angle(Vec3::X, PI / 2.),
+        ),
+        (Gyro::new(0., 10., 0.), Quat::from_axis_angle(Vec3::Z, PI)),
+        (
+            Gyro::new(0., 0., 10.),
+            Quat::from_axis_angle(Vec3::Z, PI / 2.),
+        ),
+    ];
+
+    for (gyro, expectation) in examples {
+        assert_eq!(
+            normalized_gyro_quat(&gyro).to_axis_angle(),
+            expectation.to_axis_angle(),
+            "Failed with: {gyro:?}"
+        )
+    }
+}
+
+#[test]
+fn test_normalized_accel_quat() {
+    let examples: [(Accel<f32>, Quat); 4] = [
+        (Accel::new(0., 0., 0.), Quat::default()),
+        (
+            Accel::new(10., 0., 0.),
+            Quat::from_axis_angle(Vec3::Z, PI / 2.),
+        ),
+        (Accel::new(0., 10., 0.), Quat::from_axis_angle(Vec3::X, 0.)),
+        (
+            Accel::new(0., 0., 10.),
+            Quat::from_axis_angle(-Vec3::X, PI / 2.),
+        ),
+    ];
+
+    for (accel, expectation) in examples {
+        assert_eq!(
+            normalized_accel_quat(&accel).to_axis_angle(),
+            expectation.to_axis_angle(),
+            "Failed with: {accel:?}"
+        )
+    }
 }

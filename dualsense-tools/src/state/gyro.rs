@@ -5,6 +5,12 @@ use std::ops::{Deref, DerefMut};
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct Gyro<V>(SpatialSensor<V>);
 
+impl <V> Gyro<V> {
+    pub fn new(x: V, y: V, z: V) -> Gyro<V> {
+        Gyro(SpatialSensor { x, y, z })
+    }
+}
+
 impl<V> Deref for Gyro<V> {
     type Target = SpatialSensor<V>;
 
