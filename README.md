@@ -11,7 +11,7 @@ This crate contains a set of tools that interface with the Sony Dualsense PS5 co
 
 The `dualsense-tools` crate implements an interface that facilitates reading the state of a Dualsense controller consisting of the functions:
 
-```
+```rust
 pub fn read(&mut self) -> HidResult<DualsenseState>
 pub fn read_into(&mut self, state: &mut DualsenseState) -> HidResult<()>
 ```
