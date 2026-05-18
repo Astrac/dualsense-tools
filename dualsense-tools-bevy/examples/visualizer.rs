@@ -1,3 +1,6 @@
+/// This example shows how to use the tilt estimator plugin to manipulate
+/// objects on a scene; it also works as a showcase of the estimate values
+/// produced by the estimator.
 use bevy::camera::ScalingMode;
 use bevy::camera::primitives::Aabb;
 use bevy::prelude::*;

@@ -2,14 +2,17 @@ use crate::state::SpatialSensor;
 use glam::Vec3;
 use std::ops::{Deref, DerefMut};
 
+/// Represents readings from an accelerometer
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct Accel<V>(SpatialSensor<V>);
 
 impl<T> Accel<T> {
+    /// Instantiate a new Accel from individual components
     pub fn new(x: T, y: T, z: T) -> Accel<T> {
         Accel(SpatialSensor { x, y, z })
     }
 
+    /// Instantiate a new Accel from a glam Vec3
     pub fn from_vec(v: Vec3) -> Accel<T>
     where
         T: From<f32>,

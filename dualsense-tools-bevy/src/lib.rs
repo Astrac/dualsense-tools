@@ -7,6 +7,8 @@ use dualsense_tools::*;
 use hidapi::HidApi;
 use std::sync::{Arc, Mutex};
 
+/// A plugin that integrate the tilt estimation algorithm implemented
+/// in the dualsense-tools crate as a bevy plugin.
 #[derive(Default, Debug)]
 pub struct DualsenseTiltPlugin<const SAMPLES: usize>;
 
@@ -25,6 +27,17 @@ impl<const SAMPLES: usize> Plugin for DualsenseTiltPlugin<SAMPLES> {
     }
 }
 
+/// A resource that will be updated by the plugin with the latest
+/// values produced by the tilt estimator
+#[derive(Resource, Default, Clone, Copy, Debug)]
+pub struct DualsenseTilt(TiltEstimates);
+
+impl DualsenseTilt {
+    pub fn estimates(&self) -> TiltEstimates {
+        self.0
+    }
+}
+
 #[derive(Resource, Clone, Debug, Default)]
 struct DualsenseResource {
     dualsense: Option<Arc<Mutex<Dualsense>>>,
@@ -40,15 +53,6 @@ impl<const SAMPLES: usize> TiltEstimatorResource<SAMPLES> {
         TiltEstimatorResource {
             tilt_estimator: TiltEstimator::new(config),
         }
-    }
-}
-
-#[derive(Resource, Default, Clone, Copy, Debug)]
-pub struct DualsenseTilt(TiltEstimates);
-
-impl DualsenseTilt {
-    pub fn estimates(&self) -> TiltEstimates {
-        self.0
     }
 }
 
@@ -99,7 +103,7 @@ fn handle_connection(
     Ok(())
 }
 
-fn handle_results(r: In<Result<(), BevyError>>, controller_res: ResMut<DualsenseResource>) -> () {
+fn handle_results(r: In<Result<(), BevyError>>, controller_res: ResMut<DualsenseResource>) {
     match r.0 {
         Ok(()) => (),
         Err(err) => {

@@ -1,3 +1,4 @@
+/// Represents the direction of the hat of a Dualsense controller
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub enum HatDirection {
     Up,
@@ -13,6 +14,7 @@ pub enum HatDirection {
 }
 
 impl From<u8> for HatDirection {
+    /// Reads the hat state from the dedicated byte in the HID report
     fn from(value: u8) -> Self {
         match value & 0b00001111 {
             0 => Self::Up,

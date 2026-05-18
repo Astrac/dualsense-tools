@@ -15,21 +15,6 @@ impl<const SAMPLES: usize> TiltEstimatorConfig<SAMPLES> {
     pub fn new() -> TiltEstimatorConfig<SAMPLES> {
         TiltEstimatorConfig::<SAMPLES>::default()
     }
-
-    pub fn with_correction_alpha(mut self, alpha: f32) -> TiltEstimatorConfig<SAMPLES> {
-        self.correction_alpha = alpha;
-        self
-    }
-
-    pub fn with_integration_dampening(mut self, dampening: f32) -> TiltEstimatorConfig<SAMPLES> {
-        self.integration_alpha = dampening;
-        self
-    }
-
-    pub fn with_use_gyro_integration(mut self, flag: bool) -> TiltEstimatorConfig<SAMPLES> {
-        self.use_gyro_integration = flag;
-        self
-    }
 }
 
 impl<const N: usize> Default for TiltEstimatorConfig<N> {

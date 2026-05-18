@@ -1,3 +1,4 @@
+/// Represents readings from the standard axes of a dualsense controller
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct DualsenseAxes<V> {
     pub x: V,

@@ -1,10 +1,11 @@
 use crate::{
-    control::{AxisId, ButtonId},
+    control_ids::{AxisId, ButtonId},
     state::{DualsenseAxisValue, DualsenseSensorValue},
 };
 
 use super::{Accel, DualsenseAxes, Gyro, HatDirection};
 
+/// Represents the state of a Dualsense controller as read from a HID report
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct DualsenseState {
     pub axes: DualsenseAxes<DualsenseAxisValue>,
@@ -29,6 +30,7 @@ pub struct DualsenseState {
 }
 
 impl DualsenseState {
+    /// Update the state with data read from a HID report
     pub fn update_from_hid_report(&mut self, report: &[u8; 64]) {
         self.axes.x = report[1].into();
         self.axes.y = report[2].into();
@@ -60,12 +62,14 @@ impl DualsenseState {
         self.accel.z = i16::from_le_bytes([report[26], report[27]]).into();
     }
 
+    /// Create a new state instance using data read from a HID report
     pub fn from_hid_report(self, report: &[u8; 64]) -> DualsenseState {
         let mut state = DualsenseState::default();
         state.update_from_hid_report(report);
         state
     }
 
+    /// Gets a single axis value by identifier
     pub fn get_axis(&self, id: AxisId) -> DualsenseAxisValue {
         match id {
             AxisId::LX => self.axes.x,
@@ -77,6 +81,7 @@ impl DualsenseState {
         }
     }
 
+    /// Gets a single button value by identifier
     pub fn get_button(&self, id: ButtonId) -> bool {
         match id {
             ButtonId::Cross => self.cross,

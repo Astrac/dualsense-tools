@@ -13,7 +13,7 @@ impl EmulatedAxisValue {
 
 impl From<DualsenseAxisValue> for EmulatedAxisValue {
     fn from(val: DualsenseAxisValue) -> Self {
-        let dsv = val.as_u8();
+        let dsv: u8 = val.into();
 
         let emv: i8 = if dsv >= 128 {
             (dsv - 128) as i8

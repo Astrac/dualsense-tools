@@ -1,3 +1,4 @@
+/// Identifies the buttons of a Dualsense controller
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ButtonId {
     Cross,
@@ -16,6 +17,7 @@ pub enum ButtonId {
     TouchClick,
 }
 
+/// Identifies the axes of a Dualsense controller
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum AxisId {
     LX,
@@ -24,12 +26,4 @@ pub enum AxisId {
     RX,
     RY,
     RZ,
-}
-
-pub enum ControlId {
-    Axis(AxisId),
-    Button(ButtonId),
-    Accelerometer,
-    Gyroscope,
-    TiltEstimator
 }

@@ -1,12 +1,10 @@
-mod as_tilt;
 mod dualsense;
 mod tilt;
 mod tilt_estimator;
 
-pub mod control;
+pub mod control_ids;
 pub mod state;
 
-pub use as_tilt::AsTilt;
 pub use dualsense::Dualsense;
 pub use tilt::{Radians, Tilt};
 pub use tilt_estimator::{TiltEstimates, TiltEstimator, TiltEstimatorConfig};

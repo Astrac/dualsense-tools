@@ -1,6 +1,7 @@
 use crate::state::SpatialSensor;
 use std::ops::{Deref, DerefMut};
 
+/// Represents readings from a gyroscope
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct Gyro<V>(SpatialSensor<V>);
 
