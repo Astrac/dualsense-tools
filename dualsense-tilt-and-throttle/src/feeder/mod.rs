@@ -7,14 +7,15 @@ mod vjoy;
 mod error;
 
 pub trait EmulatedStateFeeder {
+    fn description(&self) -> String;
     fn feed_state(&mut self, state: &EmulatedGamepad) -> Result<(), error::Error>;
 }
 
-struct Feeder;
+pub struct Feeder;
 
 impl Feeder {
     fn dummy() -> Result<impl EmulatedStateFeeder, error::Error> {
-        Ok(dummy::Dummy)
+        Ok(dummy::Dummy::default())
     }
 }
 
@@ -28,14 +29,14 @@ impl Feeder {
         Ok(vjoy::VJoyFeeder::new(vjoy, device))
     }
 
-    fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
+    pub fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
         Feeder::vjoy()
     }
 }
 
 #[cfg(not(target_os = "windows"))]
 impl Feeder {
-    fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
+    pub fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
         Feeder::dummy()
     }
 }

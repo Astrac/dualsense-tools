@@ -53,6 +53,10 @@ impl EmulatedStateFeeder for VJoyFeeder {
 
         Ok(())
     }
+
+    fn description(&self) -> String {
+        "VJoy Feeder".to_owned()
+    }
 }
 
 fn to_vjoy_hat_value(hat: EmulatedHat) -> u32 {

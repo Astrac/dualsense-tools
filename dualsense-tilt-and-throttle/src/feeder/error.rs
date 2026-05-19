@@ -1,3 +1,6 @@
+use std::fmt::Display;
+
+#[derive(Clone, Copy, Debug)]
 pub enum Error {
     #[cfg(target_os = "windows")]
     VJoyError(vjoy::Error),
@@ -9,3 +12,12 @@ impl From<vjoy::Error> for Error {
         Error::VJoyError(value)
     }
 }
+
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO: improve error
+        f.write_str("Error in the feeder")
+    }
+}
+
+impl std::error::Error for Error {}

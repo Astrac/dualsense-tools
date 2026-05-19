@@ -9,6 +9,7 @@ hidapi = "2.6"
 dualsense-tools = { path = "../dualsense-tools/" }
 color-eyre = "0.6"
 ratatui = "0.30"
+crossbeam-channel = "0.5.15"
 
 [target.'cfg(windows)'.dependencies]
 vjoy = { version = "0.7" }

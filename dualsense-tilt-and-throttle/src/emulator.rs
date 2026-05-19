@@ -1,8 +1,6 @@
-use std::time::Instant;
-
-use dualsense_tools::{Dualsense, Tilt, TiltEstimator, state::DualsenseState};
-
 use crate::emulated::{EmulatedAxes, EmulatedGamepad};
+use dualsense_tools::{Dualsense, Tilt, TiltEstimator, state::DualsenseState};
+use std::time::Instant;
 
 pub struct Emulator<const N: usize> {
     device: Dualsense,

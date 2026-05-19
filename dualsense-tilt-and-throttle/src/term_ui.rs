@@ -1,7 +1,5 @@
 use crate::emulated::EmulatedGamepad;
-use crate::emulator::Emulator;
-use dualsense_tools::Dualsense;
-use dualsense_tools::{TiltEstimator, TiltEstimatorConfig};
+use crossbeam_channel::Receiver;
 use ratatui::crossterm::event;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, LineGauge, Paragraph};
@@ -11,16 +9,10 @@ const GREEN_BG: Color = Color::Rgb(0, 128, 0);
 const RED_BG: Color = Color::Rgb(128, 0, 0);
 const RED_BG_TEXT: Color = Color::Rgb(200, 200, 200);
 
-pub fn run() -> color_eyre::Result<()> {
-    let mut api = hidapi::HidApi::new()?;
-    let device = Dualsense::new(&mut api)?;
-    let tilt_estimator = TiltEstimator::<20>::new(TiltEstimatorConfig::default());
-
-    let emulator = Emulator::new(device, tilt_estimator);
-
+pub fn run(channel: Receiver<EmulatedGamepad>, feeder_description: String) {
     ratatui::run(|terminal| {
-        for state in emulator {
-            terminal.draw(render(state)).unwrap();
+        for state in channel {
+            terminal.draw(render(state, feeder_description.as_str())).unwrap();
             if event::poll(Duration::from_millis(10)).unwrap()
                 && event::read().unwrap().is_key_press()
             {
@@ -28,29 +20,52 @@ pub fn run() -> color_eyre::Result<()> {
             }
         }
     });
-
-    Ok(())
 }
 
-fn render(state: EmulatedGamepad) -> impl FnMut(&mut Frame) {
+fn render(state: EmulatedGamepad, feeder_description: &str) -> impl FnMut(&mut Frame) {
     move |frame| {
         let main_areas = [
             Constraint::Fill(10),  // Spacer
             Constraint::Length(3), // Title
             Constraint::Min(11),   // Axes
             Constraint::Min(5),    // Buttons
+            Constraint::Min(3),    // Feeder Info
             Constraint::Length(1), // Footer
             Constraint::Fill(10),  // Spacer
         ];
 
         let layout = Layout::vertical(main_areas).spacing(1).horizontal_margin(8);
-        let [_, title_area, axes_area, buttons_area, footer_area, _] = frame.area().layout(&layout);
+        let [
+            _,
+            title_area,
+            axes_area,
+            buttons_area,
+            feeder_info_area,
+            footer_area,
+            _,
+        ] = frame.area().layout(&layout);
 
         render_title(frame, title_area);
         render_axes(frame, axes_area, state);
         render_buttons(frame, buttons_area, state);
         render_footer(frame, footer_area);
+        render_feeder_info(frame, feeder_description, feeder_info_area);
     }
+}
+
+fn render_feeder_info(
+    frame: &mut Frame<'_>,
+    feeder_description: &str,
+    feeder_info_area: Rect,
+) {
+    frame.render_widget(
+        Block::bordered().title("Emulated Gamepad Feeder"),
+        feeder_info_area,
+    );
+    frame.render_widget(
+        Paragraph::new(feeder_description).centered().bold(),
+        feeder_info_area.centered_vertically(Constraint::Length(1)),
+    );
 }
 
 fn render_title(frame: &mut Frame, title_area: Rect) {
