@@ -74,5 +74,5 @@ fn to_vjoy_hat_value(hat: EmulatedHat) -> u32 {
 }
 
 fn to_vjoy_axis_value(v: EmulatedAxisValue) -> i32 {
-    (v.as_i8() as i32) << 24
+    (((v.as_i8() as f32) - (i8::MIN as f32)) / (i8::MAX as f32 - i8::MIN as f32) * 32768.0) as i32
 }

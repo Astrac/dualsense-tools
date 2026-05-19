@@ -15,8 +15,7 @@ impl From<vjoy::Error> for Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO: improve error
-        f.write_str("Error in the feeder")
+        f.write_str(format!("Error in the feeder: {self:?}").as_str())
     }
 }
 
