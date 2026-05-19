@@ -12,21 +12,3 @@ pub enum HatDirection {
     #[default]
     Neutral,
 }
-
-impl From<u8> for HatDirection {
-    /// Reads the hat state from the dedicated byte in the HID report
-    fn from(value: u8) -> Self {
-        match value & 0b00001111 {
-            0 => Self::Up,
-            1 => Self::UpRight,
-            2 => Self::Right,
-            3 => Self::DownRight,
-            4 => Self::Down,
-            5 => Self::DownLeft,
-            6 => Self::Left,
-            7 => Self::UpLeft,
-            8 => Self::Neutral,
-            _ => unreachable!(),
-        }
-    }
-}

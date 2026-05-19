@@ -1,4 +1,5 @@
 mod dualsense;
+mod hid_report;
 mod tilt;
 mod tilt_estimator;
 

@@ -1,6 +1,5 @@
 use crate::{
-    control_ids::{AxisId, ButtonId},
-    state::{DualsenseAxisValue, DualsenseSensorValue},
+    control_ids::{AxisId, ButtonId}, hid_report, state::{DualsenseAxisValue, DualsenseSensorValue}
 };
 
 use super::{Accel, DualsenseAxes, Gyro, HatDirection};
@@ -32,40 +31,13 @@ pub struct DualsenseState {
 impl DualsenseState {
     /// Update the state with data read from a HID report
     pub fn update_from_hid_report(&mut self, report: &[u8; 64]) {
-        self.axes.x = report[1].into();
-        self.axes.y = report[2].into();
-        self.axes.rx = report[3].into();
-        self.axes.ry = report[4].into();
-        self.axes.z = report[5].into();
-        self.axes.rz = report[6].into();
-        self.hat = report[8].into();
-        self.triangle = (report[8] & 0b10000000) != 0;
-        self.circle = (report[8] & 0b01000000) != 0;
-        self.cross = (report[8] & 0b00100000) != 0;
-        self.square = (report[8] & 0b00010000) != 0;
-        self.l1 = (report[9] & 0b00000001) != 0;
-        self.r1 = (report[9] & 0b00000010) != 0;
-        self.l2 = (report[9] & 0b00000100) != 0;
-        self.r2 = (report[9] & 0b00001000) != 0;
-        self.share = (report[9] & 0b00010000) != 0;
-        self.option = (report[9] & 0b00100000) != 0;
-        self.l3 = (report[9] & 0b01000000) != 0;
-        self.r3 = (report[9] & 0b10000000) != 0;
-        self.ps = (report[10] & 0b00000001) != 0;
-        self.touch_click = (report[10] & 0b00000010) != 0;
-        self.mic = (report[10] & 0b00000100) != 0;
-        self.gyro.x = i16::from_le_bytes([report[16], report[17]]).into();
-        self.gyro.y = i16::from_le_bytes([report[18], report[19]]).into();
-        self.gyro.z = i16::from_le_bytes([report[20], report[21]]).into();
-        self.accel.x = i16::from_le_bytes([report[22], report[23]]).into();
-        self.accel.y = i16::from_le_bytes([report[24], report[25]]).into();
-        self.accel.z = i16::from_le_bytes([report[26], report[27]]).into();
+        hid_report::read_input_report(report, self);
     }
 
     /// Create a new state instance using data read from a HID report
-    pub fn from_hid_report(self, report: &[u8; 64]) -> DualsenseState {
+    pub fn from_hid_report(report: &[u8; 64]) -> DualsenseState {
         let mut state = DualsenseState::default();
-        state.update_from_hid_report(report);
+        hid_report::read_input_report(report, &mut state);
         state
     }
 
