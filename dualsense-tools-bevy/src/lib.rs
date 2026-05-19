@@ -10,15 +10,21 @@ use std::sync::{Arc, Mutex};
 /// A plugin that integrate the tilt estimation algorithm implemented
 /// in the dualsense-tools crate as a bevy plugin.
 #[derive(Default, Debug)]
-pub struct DualsenseTiltPlugin<const SAMPLES: usize>;
+pub struct DualsenseTiltPlugin<const SAMPLES: usize> {
+    estimator_config: TiltEstimatorConfig<SAMPLES>,
+}
+
+impl<const SAMPLES: usize> DualsenseTiltPlugin<SAMPLES> {
+    pub fn new(estimator_config: TiltEstimatorConfig<SAMPLES>) -> DualsenseTiltPlugin<SAMPLES> {
+        DualsenseTiltPlugin { estimator_config }
+    }
+}
 
 impl<const SAMPLES: usize> Plugin for DualsenseTiltPlugin<SAMPLES> {
     fn build(&self, app: &mut bevy::app::App) {
         app.insert_resource(DualsenseTilt::default())
             .insert_resource(DualsenseResource::default())
-            .insert_resource(TiltEstimatorResource::new(
-                TiltEstimatorConfig::<SAMPLES>::default(),
-            ))
+            .insert_resource(TiltEstimatorResource::new(self.estimator_config))
             .add_systems(Update, handle_connection)
             .add_systems(
                 Update,

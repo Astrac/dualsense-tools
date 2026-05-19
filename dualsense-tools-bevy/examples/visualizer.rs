@@ -23,16 +23,12 @@ struct GamepadBound {
 struct ShowAxes;
 
 fn main() {
-    scene::<10>();
-}
-
-fn scene<const BUFSIZE: usize>() {
     App::new()
         .add_plugins(DefaultPlugins.set(AssetPlugin {
             file_path: "examples/assets".to_owned(),
             ..default()
         }))
-        .add_plugins(DualsenseTiltPlugin::<BUFSIZE>)
+        .add_plugins(DualsenseTiltPlugin::<10>::default())
         .add_systems(Startup, setup)
         .add_systems(Update, update)
         .add_systems(Update, draw_axes)
