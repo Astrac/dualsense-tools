@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub enum Error {
     #[cfg(target_os = "windows")]
     VJoyError(vjoy::Error),

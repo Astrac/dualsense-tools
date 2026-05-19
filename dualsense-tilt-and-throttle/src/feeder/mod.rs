@@ -23,7 +23,8 @@ impl Feeder {
 impl Feeder {
     fn vjoy() -> Result<impl EmulatedStateFeeder, error::Error> {
         let vjoy = ::vjoy::VJoy::from_default_dll_location()?;
-        let device_id = vjoy.get_id_for_configuration(13, 7, 1)?;
+        // TODO: Should be 13
+        let device_id = vjoy.get_id_for_configuration(14, 7, 1)?;
         let device = vjoy.get_device_state(device_id)?;
 
         Ok(vjoy::VJoyFeeder::new(vjoy, device))

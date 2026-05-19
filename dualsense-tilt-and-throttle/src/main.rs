@@ -41,7 +41,7 @@ fn main() -> color_eyre::Result<()> {
     let feeding_rx = state_rx.clone();
     let feeding = thread::spawn(move || {
         for state in feeding_rx {
-            feeder.feed_state(&state);
+            feeder.feed_state(&state).unwrap();
         }
     });
 
