@@ -1,18 +1,24 @@
-use super::Feeder;
-use vjoy::{ButtonState, Device, Error, VJoy};
+use super::EmulatedStateFeeder;
+use vjoy::{ButtonState, Device, VJoy};
 
 use crate::{
     emulated::{EmulatedGamepad, EmulatedHat},
     emulated_axis_value::EmulatedAxisValue,
 };
 
-pub struct VJoy {
+pub struct VJoyFeeder {
     vjoy: VJoy,
     device: Device,
 }
 
-impl Feeder for VJoy {
-    fn feed_state(&mut self, state: &EmulatedGamepad) -> Result<(), Error> {
+impl VJoyFeeder {
+    pub fn new(vjoy: VJoy, device: Device) -> VJoyFeeder {
+        VJoyFeeder { vjoy, device }
+    }
+}
+
+impl EmulatedStateFeeder for VJoyFeeder {
+    fn feed_state(&mut self, state: &EmulatedGamepad) -> Result<(), super::error::Error> {
         for (index, button) in state.buttons.iter().enumerate() {
             self.device.set_button(
                 index as u8 + 1,
@@ -59,7 +65,7 @@ fn to_vjoy_hat_value(hat: EmulatedHat) -> u32 {
         EmulatedHat::DownLeft => 22500,
         EmulatedHat::Left => 27000,
         EmulatedHat::UpLeft => 31500,
-        EmulatedHat::Neutral => -1,
+        EmulatedHat::Neutral => u32::MAX,
     }
 }
 

@@ -1,16 +1,41 @@
 use crate::emulated::EmulatedGamepad;
 
+mod dummy;
 #[cfg(target_os = "windows")]
 mod vjoy;
 
-#[cfg(not(target_os = "windows"))]
-mod dummy;
+mod error;
 
-pub enum Error {
-    #[cfg(target_os = "windows")]
-    VJoyError(vjoy::Error),
+pub trait EmulatedStateFeeder {
+    fn feed_state(&mut self, state: &EmulatedGamepad) -> Result<(), error::Error>;
 }
 
-pub trait Feeder {
-    fn feed_state(&mut self, state: &EmulatedGamepad) -> Result<(), Error>;
+struct Feeder;
+
+impl Feeder {
+    fn dummy() -> Result<impl EmulatedStateFeeder, error::Error> {
+        Ok(dummy::Dummy)
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl Feeder {
+    fn vjoy() -> Result<impl EmulatedStateFeeder, error::Error> {
+        let vjoy = ::vjoy::VJoy::from_default_dll_location()?;
+        let device_id = vjoy.get_id_for_configuration(13, 7, 1)?;
+        let device = vjoy.get_device_state(device_id)?;
+
+        Ok(vjoy::VJoyFeeder::new(vjoy, device))
+    }
+
+    fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
+        Feeder::vjoy()
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+impl Feeder {
+    fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
+        Feeder::dummy()
+    }
 }
