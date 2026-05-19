@@ -48,4 +48,5 @@ pub struct EmulatedGamepad {
     pub axes: EmulatedAxes,
     pub hat: EmulatedHat,
     pub buttons: [bool; 13],
+    pub is_tilt_enabled: bool,
 }

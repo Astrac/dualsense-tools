@@ -1,5 +1,5 @@
 /// Identifies the buttons of a Dualsense controller
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 pub enum ButtonId {
     Cross,
     Square,
@@ -18,7 +18,7 @@ pub enum ButtonId {
 }
 
 /// Identifies the axes of a Dualsense controller
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 pub enum AxisId {
     LX,
     LY,

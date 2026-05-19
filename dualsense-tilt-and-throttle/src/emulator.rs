@@ -1,5 +1,10 @@
-use crate::emulated::{EmulatedAxes, EmulatedGamepad};
-use dualsense_tools::{Dualsense, Tilt, TiltEstimator, state::DualsenseState};
+use crate::{
+    emulated::{EmulatedAxes, EmulatedGamepad},
+    emulated_axis_value::EmulatedAxisValue,
+};
+use dualsense_tools::{
+    Dualsense, Tilt, TiltEstimator, control_ids::ButtonId, state::DualsenseState,
+};
 use std::time::Instant;
 
 pub struct Emulator<const N: usize> {
@@ -9,6 +14,9 @@ pub struct Emulator<const N: usize> {
     tilt: Tilt,
     current_timestamp: Instant,
     last_timestamp: Instant,
+    tilt_enabled: bool,
+    tilt_switch_combo: &'static [ButtonId],
+    debounce_tilt_switch: bool,
 }
 
 impl<const N: usize> Emulator<N> {
@@ -20,6 +28,9 @@ impl<const N: usize> Emulator<N> {
             tilt: Tilt::default(),
             current_timestamp: Instant::now(),
             last_timestamp: Instant::now(),
+            tilt_enabled: true,
+            tilt_switch_combo: &[ButtonId::Mic],
+            debounce_tilt_switch: false,
         }
     }
 }
@@ -47,6 +58,29 @@ impl<const N: usize> Iterator for Emulator<N> {
         let throttle: i8 =
             ((ds_state.axes.rz.as_u8() / 2) as i8) - ((ds_state.axes.z.as_u8() / 2) as i8);
 
+        if self
+            .tilt_switch_combo
+            .iter()
+            .fold(true, |a, b| a && ds_state.get_button(*b))
+        {
+            if !self.debounce_tilt_switch {
+                self.tilt_enabled = !self.tilt_enabled;
+                self.debounce_tilt_switch = true;
+            }
+        } else {
+            self.debounce_tilt_switch = false;
+        }
+
+        let pitch;
+        let roll;
+        if self.tilt_enabled {
+            pitch = self.tilt.get_pitch_radians().into();
+            roll = self.tilt.get_roll_radians().into();
+        } else {
+            pitch = EmulatedAxisValue::default();
+            roll = EmulatedAxisValue::default();
+        }
+
         let emulated_state = EmulatedGamepad {
             axes: EmulatedAxes {
                 x: ds_state.axes.x.into(),
@@ -54,8 +88,8 @@ impl<const N: usize> Iterator for Emulator<N> {
                 rx: ds_state.axes.rx.into(),
                 ry: ds_state.axes.ry.into(),
                 throttle: throttle.into(),
-                pitch: self.tilt.get_pitch_radians().into(),
-                roll: self.tilt.get_roll_radians().into(),
+                pitch,
+                roll,
             },
             hat: ds_state.hat.into(),
             buttons: [
@@ -73,6 +107,7 @@ impl<const N: usize> Iterator for Emulator<N> {
                 ds_state.ps,
                 ds_state.mic,
             ],
+            is_tilt_enabled: self.tilt_enabled,
         };
 
         Some(emulated_state)

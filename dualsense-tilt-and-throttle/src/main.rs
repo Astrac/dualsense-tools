@@ -21,7 +21,9 @@ fn main() -> color_eyre::Result<()> {
     let tilt_estimator = TiltEstimator::<20>::new(TiltEstimatorConfig::default());
     let emulator = Emulator::new(device, tilt_estimator);
 
+    // From polling to others
     let (state_tx, state_rx) = crossbeam_channel::bounded(20);
+    // From UI to polling
     let (command_tx, command_rx) = crossbeam_channel::bounded(20);
 
     let polling = thread::spawn(move || {

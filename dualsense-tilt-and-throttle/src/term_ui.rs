@@ -12,7 +12,9 @@ const RED_BG_TEXT: Color = Color::Rgb(200, 200, 200);
 pub fn run(channel: Receiver<EmulatedGamepad>, feeder_description: String) {
     ratatui::run(|terminal| {
         for state in channel {
-            terminal.draw(render(state, feeder_description.as_str())).unwrap();
+            terminal
+                .draw(render(state, feeder_description.as_str()))
+                .unwrap();
             if event::poll(Duration::from_millis(10)).unwrap()
                 && event::read().unwrap().is_key_press()
             {
@@ -29,7 +31,7 @@ fn render(state: EmulatedGamepad, feeder_description: &str) -> impl FnMut(&mut F
             Constraint::Length(3), // Title
             Constraint::Min(11),   // Axes
             Constraint::Min(5),    // Buttons
-            Constraint::Min(3),    // Feeder Info
+            Constraint::Min(6),    // Feeder Info
             Constraint::Length(1), // Footer
             Constraint::Fill(10),  // Spacer
         ];
@@ -46,25 +48,30 @@ fn render(state: EmulatedGamepad, feeder_description: &str) -> impl FnMut(&mut F
         ] = frame.area().layout(&layout);
 
         render_title(frame, title_area);
-        render_axes(frame, axes_area, state);
-        render_buttons(frame, buttons_area, state);
+        render_axes(frame, axes_area, &state);
+        render_buttons(frame, buttons_area, &state);
         render_footer(frame, footer_area);
-        render_feeder_info(frame, feeder_description, feeder_info_area);
+        render_feeder_info(frame, feeder_description, state.is_tilt_enabled, feeder_info_area);
     }
 }
 
 fn render_feeder_info(
     frame: &mut Frame<'_>,
     feeder_description: &str,
+    tilt_enabled: bool,
     feeder_info_area: Rect,
 ) {
+    let tilt_state = if tilt_enabled { "Enabled" } else { "Disabled" };
+
     frame.render_widget(
         Block::bordered().title("Emulated Gamepad Feeder"),
         feeder_info_area,
     );
     frame.render_widget(
-        Paragraph::new(feeder_description).centered().bold(),
-        feeder_info_area.centered_vertically(Constraint::Length(1)),
+        Paragraph::new(format!(
+            "Implementation: {feeder_description}\nTilt emulation: {tilt_state}"
+        )),
+        feeder_info_area.centered_vertically(Constraint::Length(2)).inner(Margin::new(3, 0)),
     );
 }
 
@@ -90,7 +97,7 @@ fn render_footer(frame: &mut Frame, footer_area: Rect) {
     );
 }
 
-fn render_buttons(frame: &mut Frame, buttons_area: Rect, state: EmulatedGamepad) {
+fn render_buttons(frame: &mut Frame, buttons_area: Rect, state: &EmulatedGamepad) {
     frame.render_widget(Block::bordered().title("Emulated Buttons"), buttons_area);
 
     let buttons_constraints = [Constraint::Length(11); 13];
@@ -114,7 +121,7 @@ fn render_buttons(frame: &mut Frame, buttons_area: Rect, state: EmulatedGamepad)
     }
 }
 
-fn render_axes(frame: &mut Frame, axes_area: Rect, state: EmulatedGamepad) {
+fn render_axes(frame: &mut Frame, axes_area: Rect, state: &EmulatedGamepad) {
     let axes_rows = [Constraint::Length(6), Constraint::Length(2)];
 
     let [axes, throttle] = axes_area
