@@ -5,7 +5,10 @@ edition = "2024"
 publish = false
 
 [dependencies]
-hidapi = "2.6.5"
+hidapi = "2.6"
 dualsense-tools = { path = "../dualsense-tools/" }
-color-eyre = "0.6.5"
-ratatui = "0.30.0"
+color-eyre = "0.6"
+ratatui = "0.30"
+
+[target.'cfg(windows)'.dependencies]
+vjoy = { version = "0.7" }

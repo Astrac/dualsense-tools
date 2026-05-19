@@ -14,7 +14,7 @@ const RED_BG_TEXT: Color = Color::Rgb(200, 200, 200);
 pub fn run() -> color_eyre::Result<()> {
     let mut api = hidapi::HidApi::new()?;
     let device = Dualsense::new(&mut api)?;
-    let tilt_estimator = TiltEstimator::<10>::new(TiltEstimatorConfig::default());
+    let tilt_estimator = TiltEstimator::<20>::new(TiltEstimatorConfig::default());
 
     let emulator = Emulator::new(device, tilt_estimator);
 
