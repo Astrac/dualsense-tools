@@ -61,7 +61,7 @@ impl<const N: usize> Iterator for Emulator<N> {
         if self
             .tilt_switch_combo
             .iter()
-            .fold(true, |a, b| a && ds_state.get_button(*b))
+            .all(|a| ds_state.get_button(*a))
         {
             if !self.debounce_tilt_switch {
                 self.tilt_enabled = !self.tilt_enabled;

@@ -9,6 +9,6 @@ impl EmulatedStateFeeder for Dummy {
     }
 
     fn description(&self) -> String {
-        "Dummy Feeder".to_owned()
+        "Unsupported platform".to_owned()
     }
 }

@@ -14,8 +14,14 @@ impl From<vjoy::Error> for Error {
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("Error in the feeder: {self:?}").as_str())
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[cfg(target_os = "windows")]
+        {
+            let Self::VJoyError(error) = self;
+            _f.write_str(format!("Error in the feeder: {error}").as_str())?;
+        }
+
+        Ok(())
     }
 }
 
