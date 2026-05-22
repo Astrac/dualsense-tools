@@ -51,12 +51,14 @@ struct DualsenseResource {
 
 #[derive(Resource, Clone, Debug)]
 struct TiltEstimatorResource<const SAMPLES: usize> {
+    state_buffer: DualsenseStatesBuffer<SAMPLES>,
     tilt_estimator: TiltEstimator<SAMPLES>,
 }
 
 impl<const SAMPLES: usize> TiltEstimatorResource<SAMPLES> {
     fn new(config: TiltEstimatorConfig<SAMPLES>) -> TiltEstimatorResource<SAMPLES> {
         TiltEstimatorResource {
+            state_buffer: default(),
             tilt_estimator: TiltEstimator::new(config),
         }
     }
@@ -65,16 +67,16 @@ impl<const SAMPLES: usize> TiltEstimatorResource<SAMPLES> {
 fn update_tilt_tilt_system<const SAMPLES: usize>(
     controller_res: Res<DualsenseResource>,
     tilt: ResMut<DualsenseTilt>,
-    estimator: ResMut<TiltEstimatorResource<SAMPLES>>,
-    time: Res<Time>,
+    estimator_res: ResMut<TiltEstimatorResource<SAMPLES>>,
 ) -> Result<(), BevyError> {
     tilt.into_inner().0 = if let Some(controller) = &controller_res.into_inner().dualsense {
+        let estimator = estimator_res.into_inner();
         let state = controller.lock().unwrap().read()?;
-        estimator.into_inner().tilt_estimator.next_estimate(
-            &state.accel,
-            &state.gyro,
-            &time.delta(),
-        )
+        let event = estimator.state_buffer.push(state);
+
+        estimator
+            .tilt_estimator
+            .next_estimate(event)
     } else {
         TiltEstimates::default()
     };

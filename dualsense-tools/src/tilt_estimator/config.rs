@@ -20,8 +20,11 @@ impl<const SAMPLES: usize> TiltEstimatorConfig<SAMPLES> {
 impl<const N: usize> Default for TiltEstimatorConfig<N> {
     fn default() -> Self {
         Self {
+            // Give more weight to the accelerometer as less noisy overall
             correction_alpha: 0.25,
+            // Dampen gyroscope to avoid overshooting/instability
             integration_alpha: 0.7,
+            // Enable gyro integration to strive for both reactivity and precision
             use_gyro_integration: true,
         }
     }

@@ -1,20 +1,18 @@
 use crate::{
-    delta_t_tracker::DeltaTTracker,
     emulated::{EmulatedAxes, EmulatedGamepad},
     emulated_axis_value::EmulatedAxisValue,
 };
 use dualsense_tools::{
-    Dualsense, Tilt, TiltEstimator, control_ids::ButtonId, state::DualsenseState,
+    Dualsense, DualsenseStatesBuffer, Tilt, TiltEstimator, control_ids::ButtonId,
 };
 
 pub struct Emulator<const N: usize> {
     device: Dualsense,
+    states_buffer: DualsenseStatesBuffer<N>,
     tilt_estimator: TiltEstimator<N>,
-    delta_t_tracker: DeltaTTracker,
-    dualsense_state_buffer: DualsenseState,
     tilt: Tilt,
     tilt_enabled: bool,
-    tilt_switch_combo: &'static [ButtonId],
+    tilt_switch_trigger: &'static [ButtonId],
     debounce_tilt_switch: bool,
 }
 
@@ -22,12 +20,11 @@ impl<const N: usize> Emulator<N> {
     pub fn new(device: Dualsense, tilt_estimator: TiltEstimator<N>) -> Emulator<N> {
         Emulator {
             device,
+            states_buffer: DualsenseStatesBuffer::default(),
             tilt_estimator,
-            delta_t_tracker: DeltaTTracker::new(),
-            dualsense_state_buffer: DualsenseState::default(),
             tilt: Tilt::default(),
             tilt_enabled: true,
-            tilt_switch_combo: &[ButtonId::Mic],
+            tilt_switch_trigger: &[ButtonId::Mic],
             debounce_tilt_switch: false,
         }
     }
@@ -37,17 +34,15 @@ impl<const N: usize> Iterator for Emulator<N> {
     type Item = EmulatedGamepad;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let ds_state = &mut self.dualsense_state_buffer;
-        //
         // TODO: Handle errors
-        self.device.read_into(ds_state).unwrap();
+        let ds_state = self.device.read().unwrap();
 
-        let elapsed = self.delta_t_tracker.next_tick();
+        let state_event = self.states_buffer.push(ds_state);
         let throttle: i8 =
             ((ds_state.axes.rz.as_u8() / 2) as i8) - ((ds_state.axes.z.as_u8() / 2) as i8);
 
         if self
-            .tilt_switch_combo
+            .tilt_switch_trigger
             .iter()
             .all(|a| ds_state.get_button(*a))
         {
@@ -64,7 +59,7 @@ impl<const N: usize> Iterator for Emulator<N> {
         if self.tilt_enabled {
             self.tilt = self
                 .tilt_estimator
-                .next_estimate(&ds_state.accel, &ds_state.gyro, &elapsed)
+                .next_estimate(state_event)
                 .accel_corrected_gyro;
 
             pitch = self.tilt.get_pitch_radians().into();

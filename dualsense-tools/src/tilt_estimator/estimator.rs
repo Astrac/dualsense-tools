@@ -1,11 +1,10 @@
-use std::{f32::consts::PI, time::Duration};
+use std::f32::consts::PI;
 
-use circular_buffer::CircularBuffer;
 use glam::{Quat, Vec3};
 
 use crate::{
-    Tilt, TiltEstimates,
-    state::{Accel, DualsenseSensorValue, Gyro},
+    StateEvent, Tilt, TiltEstimates,
+    state::{Accel, Gyro},
     tilt_estimator::TiltEstimatorConfig,
 };
 
@@ -19,7 +18,6 @@ use crate::{
 /// from above).
 #[derive(Clone, Debug)]
 pub struct TiltEstimator<const N: usize> {
-    accel_samples: CircularBuffer<N, Vec3>,
     accel_samples_sum: Vec3,
     current: TiltEstimates,
     config: TiltEstimatorConfig<N>,
@@ -29,7 +27,6 @@ impl<const N: usize> TiltEstimator<N> {
     /// Creates a new estimator - see [crate::TiltEstimatorConfig]
     pub fn new(config: TiltEstimatorConfig<N>) -> TiltEstimator<N> {
         TiltEstimator {
-            accel_samples: CircularBuffer::new(),
             accel_samples_sum: Vec3::ZERO,
             current: TiltEstimates::default(),
             config,
@@ -42,21 +39,15 @@ impl<const N: usize> TiltEstimator<N> {
     }
 
     /// Computes the next estimates and updates the internal state
-    pub fn next_estimate(
-        &mut self,
-        accel: &Accel<DualsenseSensorValue>,
-        gyro: &Gyro<DualsenseSensorValue>,
-        delta_t: &Duration,
-    ) -> TiltEstimates {
+    pub fn next_estimate(&mut self, event: StateEvent) -> TiltEstimates {
+        let accel = event.current.value.accel;
+        let gyro = event.current.value.gyro;
+
         let accel_vec = accel.as_vec3();
         self.accel_samples_sum += accel_vec;
+        self.accel_samples_sum -= event.evicted.value.accel.as_vec3();
 
-        if let Some(outdated) = self.accel_samples.push_back(accel_vec) {
-            self.accel_samples_sum -= outdated
-        }
-
-        let accel_avg =
-            Accel::<f32>::from_vec(self.accel_samples_sum / (self.accel_samples.len() as f32));
+        let accel_avg = Accel::<f32>::from_vec(self.accel_samples_sum / (N as f32));
 
         let accel_tilt_quat = normalized_accel_quat(&accel_avg);
 
@@ -65,11 +56,11 @@ impl<const N: usize> TiltEstimator<N> {
 
         if self.config.use_gyro_integration {
             let gyro_length = gyro.as_vec3().length();
-            gyro_norm_quat = normalized_gyro_quat(gyro);
+            gyro_norm_quat = normalized_gyro_quat(&gyro);
 
             let gyro_dquat = Quat::from_axis_angle(
                 gyro_norm_quat.to_scaled_axis().normalize_or_zero(),
-                f32::to_radians(gyro_length) * delta_t.as_secs_f32(),
+                f32::to_radians(gyro_length) * event.elapsed_time().as_secs_f32(),
             );
 
             let gyro_quat = self.current.accel_corrected_gyro.quat.mul_quat(gyro_dquat);
@@ -82,7 +73,7 @@ impl<const N: usize> TiltEstimator<N> {
 
         self.current = TiltEstimates {
             accel_avg: Tilt::new(accel_tilt_quat),
-            accel_instant: Tilt::new(normalized_accel_quat(accel)),
+            accel_instant: Tilt::new(normalized_accel_quat(&accel)),
             gyro_instant: Tilt::new(gyro_norm_quat),
             accel_corrected_gyro: fused_tilt,
         };
