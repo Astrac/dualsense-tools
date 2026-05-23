@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use dualsense_tools::state::HatDirection;
 
 use crate::emulated_axis_value::EmulatedAxisValue;
@@ -25,6 +27,22 @@ pub enum EmulatedHat {
     UpLeft,
     #[default]
     Neutral,
+}
+
+impl Display for EmulatedHat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EmulatedHat::Up => f.write_str("Up"),
+            EmulatedHat::UpRight => f.write_str("UpRight"),
+            EmulatedHat::Right => f.write_str("Right"),
+            EmulatedHat::DownRight => f.write_str("DownRight"),
+            EmulatedHat::Down => f.write_str("Down"),
+            EmulatedHat::DownLeft => f.write_str("DownLeft"),
+            EmulatedHat::Left => f.write_str("Left"),
+            EmulatedHat::UpLeft => f.write_str("UpLeft"),
+            EmulatedHat::Neutral => f.write_str("Neutral"),
+        }
+    }
 }
 
 impl From<HatDirection> for EmulatedHat {

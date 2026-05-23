@@ -1,37 +1,20 @@
 use crate::emulated::EmulatedGamepad;
-use crossbeam_channel::Receiver;
-use ratatui::crossterm::event;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, LineGauge, Paragraph};
-use std::time::Duration;
 
 const GREEN_BG: Color = Color::Rgb(0, 128, 0);
 const RED_BG: Color = Color::Rgb(128, 0, 0);
 const RED_BG_TEXT: Color = Color::Rgb(200, 200, 200);
 
-pub fn run(channel: Receiver<EmulatedGamepad>, feeder_description: String) {
-    ratatui::run(|terminal| {
-        for state in channel {
-            terminal
-                .draw(render(state, feeder_description.as_str()))
-                .unwrap();
-            if event::poll(Duration::from_millis(10)).unwrap()
-                && event::read().unwrap().is_key_press()
-            {
-                break;
-            }
-        }
-    });
-}
-
-fn render(state: EmulatedGamepad, feeder_description: &str) -> impl FnMut(&mut Frame) {
+pub fn render(state: EmulatedGamepad, feeder_description: &str) -> impl FnMut(&mut Frame) {
     move |frame| {
+        frame.render_widget(Block::default().bg(Color::Rgb(20, 20, 40)), frame.area());
+
         let main_areas = [
             Constraint::Fill(10),  // Spacer
             Constraint::Length(3), // Title
             Constraint::Min(11),   // Axes
-            Constraint::Min(5),    // Buttons
-            Constraint::Min(6),    // Feeder Info
+            Constraint::Min(9),    // Buttons and dpad
             Constraint::Length(1), // Footer
             Constraint::Fill(10),  // Spacer
         ];
@@ -41,17 +24,15 @@ fn render(state: EmulatedGamepad, feeder_description: &str) -> impl FnMut(&mut F
             _,
             title_area,
             axes_area,
-            buttons_area,
-            feeder_info_area,
+            buttons_and_feeder_area,
             footer_area,
             _,
         ] = frame.area().layout(&layout);
 
         render_title(frame, title_area);
         render_axes(frame, axes_area, &state);
-        render_buttons(frame, buttons_area, &state);
+        render_buttons_and_feeder_info(frame, buttons_and_feeder_area, feeder_description, &state);
         render_footer(frame, footer_area);
-        render_feeder_info(frame, feeder_description, state.is_tilt_enabled, feeder_info_area);
     }
 }
 
@@ -69,14 +50,14 @@ fn render_feeder_info(
     );
     frame.render_widget(
         Paragraph::new(format!(
-            "Implementation: {feeder_description}\nTilt emulation: {tilt_state}"
+            "Virtual device feeder: {feeder_description}\nTilt emulation: {tilt_state}"
         )),
-        feeder_info_area.centered_vertically(Constraint::Length(2)).inner(Margin::new(3, 0)),
+        feeder_info_area.inner(Margin::new(3, 2)),
     );
 }
 
 fn render_title(frame: &mut Frame, title_area: Rect) {
-    let title = Line::from_iter([Span::from("Dualsense Tilt And Throttle Emulator")
+    let title = Line::from_iter([Span::from("Dualsense 6-axis and throttle emulator")
         .bold()
         .fg(RED_BG_TEXT)]);
 
@@ -97,16 +78,32 @@ fn render_footer(frame: &mut Frame, footer_area: Rect) {
     );
 }
 
-fn render_buttons(frame: &mut Frame, buttons_area: Rect, state: &EmulatedGamepad) {
-    frame.render_widget(Block::bordered().title("Emulated Buttons"), buttons_area);
+fn render_buttons_and_feeder_info(
+    frame: &mut Frame,
+    area: Rect,
+    feeder_description: &str,
+    state: &EmulatedGamepad,
+) {
+    let columns = [Constraint::Length(63), Constraint::Min(30)];
 
-    let buttons_constraints = [Constraint::Length(11); 13];
-    let buttons_layout = Layout::horizontal(buttons_constraints).flex(layout::Flex::SpaceBetween);
-    let buttons_cells: [_; 13] = buttons_area
+    let [buttons_area, dpad_area] = area.layout(&Layout::horizontal(columns).spacing(1));
+
+    render_buttons(frame, buttons_area, state);
+    render_feeder_info(frame, feeder_description, state.is_tilt_enabled, dpad_area);
+}
+
+fn render_buttons(frame: &mut Frame, area: Rect, state: &EmulatedGamepad) {
+    frame.render_widget(Block::bordered().title("Emulated Buttons"), area);
+
+    let vertical = Layout::vertical([Constraint::Length(1); 3]).spacing(1);
+    let horizontal = Layout::horizontal([Constraint::Length(13); 5]).spacing(1);
+    let buttons_cells = area
         .inner(Margin::new(2, 2))
-        .layout(&buttons_layout);
+        .layout_vec(&vertical)
+        .into_iter()
+        .flat_map(|row| row.layout_vec(&horizontal));
 
-    for (i, cell) in buttons_cells.iter().enumerate() {
+    for (i, cell) in buttons_cells.enumerate() {
         if i < state.buttons.len() {
             let button_fg = if state.buttons[i] { GREEN_BG } else { RED_BG };
 
@@ -115,27 +112,23 @@ fn render_buttons(frame: &mut Frame, buttons_area: Rect, state: &EmulatedGamepad
                     .bg(button_fg)
                     .fg(RED_BG_TEXT)
                     .centered(),
-                *cell,
+                cell,
             );
         }
     }
 }
 
 fn render_axes(frame: &mut Frame, axes_area: Rect, state: &EmulatedGamepad) {
-    let axes_rows = [Constraint::Length(6), Constraint::Length(2)];
-
-    let [axes, throttle] = axes_area
-        .centered_vertically(Constraint::Length(8))
-        .layout(&Layout::vertical(axes_rows).spacing(0));
-
     let axes_cols = [Constraint::Fill(1); 2];
-    let [left, right] = axes.layout(&Layout::horizontal(axes_cols).spacing(0));
+    let [left, right] = axes_area
+        .inner(Margin::new(0, 2))
+        .layout(&Layout::horizontal(axes_cols).spacing(0));
 
-    let axes_gauges_rows = [Constraint::Length(2); 3];
-    let axes_layout = Layout::vertical(axes_gauges_rows).spacing(0);
+    let axes_gauges_rows = [Constraint::Length(2); 4];
+    let axes_layout = Layout::vertical(axes_gauges_rows).spacing(1);
 
-    let [axis_00, axis_01, axis_02] = left.layout(&axes_layout);
-    let [axis_10, axis_11, axis_12] = right.layout(&axes_layout);
+    let [axis_00, axis_01, axis_02, throttle] = left.layout(&axes_layout);
+    let [axis_10, axis_11, axis_12, hat] = right.layout(&axes_layout);
 
     frame.render_widget(Block::bordered().title("Emulated Axes"), axes_area);
     render_line_gauge(frame, axis_00, "Roll", state.axes.roll.as_i8());
@@ -145,6 +138,11 @@ fn render_axes(frame: &mut Frame, axes_area: Rect, state: &EmulatedGamepad) {
     render_line_gauge(frame, axis_11, "Y", state.axes.y.as_i8());
     render_line_gauge(frame, axis_12, "RY", state.axes.ry.as_i8());
     render_line_gauge(frame, throttle, "Throttle", state.axes.throttle.as_i8());
+
+    frame.render_widget(
+        Paragraph::new(format!("Hat status: {}", state.hat)),
+        hat.inner(Margin::new(2, 0)),
+    );
 }
 
 pub fn render_line_gauge(frame: &mut Frame, area: Rect, label: &str, value: i8) {

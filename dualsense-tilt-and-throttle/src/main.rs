@@ -1,3 +1,4 @@
+mod app;
 mod emulated;
 mod emulated_axis_value;
 mod emulator;
@@ -20,6 +21,7 @@ fn main() -> color_eyre::Result<()> {
     let device = Dualsense::new(&mut api)?;
     let tilt_estimator = TiltEstimator::<20>::new(TiltEstimatorConfig::default());
     let emulator = Emulator::new(device, tilt_estimator);
+    let frame_duration = Duration::from_millis(15);
 
     // From polling to others
     let (state_tx, state_rx) = crossbeam_channel::bounded(20);
@@ -32,7 +34,7 @@ fn main() -> color_eyre::Result<()> {
                 break;
             }
             state_tx.send(state).unwrap();
-            thread::sleep(Duration::from_millis(15));
+            thread::sleep(frame_duration);
         }
     });
 
@@ -46,14 +48,12 @@ fn main() -> color_eyre::Result<()> {
     });
 
     let displaying_rx = state_rx.clone();
-    let displaying = thread::spawn(move || {
-        term_ui::run(displaying_rx, feeder_description);
-        command_tx.send(Commands::Quit).unwrap();
-    });
+    app::start(displaying_rx, feeder_description, frame_duration)?;
+
+    command_tx.send(Commands::Quit).unwrap();
 
     polling.join().unwrap();
     feeding.join().unwrap();
-    displaying.join().unwrap();
 
     Ok(())
 }
