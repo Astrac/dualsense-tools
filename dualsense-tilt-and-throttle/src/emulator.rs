@@ -13,7 +13,6 @@ pub struct Emulator<const N: usize> {
     tilt: Tilt,
     tilt_enabled: bool,
     tilt_switch_trigger: &'static [ButtonId],
-    debounce_tilt_switch: bool,
 }
 
 impl<const N: usize> Emulator<N> {
@@ -25,7 +24,6 @@ impl<const N: usize> Emulator<N> {
             tilt: Tilt::default(),
             tilt_enabled: true,
             tilt_switch_trigger: &[ButtonId::Mic],
-            debounce_tilt_switch: false,
         }
     }
 }
@@ -38,20 +36,22 @@ impl<const N: usize> Iterator for Emulator<N> {
         let ds_state = self.device.read().unwrap();
 
         let state_event = self.states_buffer.push(ds_state);
+
         let throttle: i8 =
             ((ds_state.axes.rz.as_u8() / 2) as i8) - ((ds_state.axes.z.as_u8() / 2) as i8);
 
-        if self
+        let is_previous_tilt_switch_pressed = self
             .tilt_switch_trigger
             .iter()
-            .all(|a| ds_state.get_button(*a))
-        {
-            if !self.debounce_tilt_switch {
-                self.tilt_enabled = !self.tilt_enabled;
-                self.debounce_tilt_switch = true;
-            }
-        } else {
-            self.debounce_tilt_switch = false;
+            .all(|a| state_event.previous.value.get_button(a));
+
+        let is_current_tilt_switch_pressed = self
+            .tilt_switch_trigger
+            .iter()
+            .all(|a| state_event.previous.value.get_button(a));
+
+        if !is_previous_tilt_switch_pressed && is_current_tilt_switch_pressed {
+            self.tilt_enabled = !self.tilt_enabled;
         }
 
         let pitch;

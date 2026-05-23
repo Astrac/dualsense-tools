@@ -54,7 +54,7 @@ impl DualsenseState {
     }
 
     /// Gets a single button value by identifier
-    pub fn get_button(&self, id: ButtonId) -> bool {
+    pub fn get_button(&self, id: &ButtonId) -> bool {
         match id {
             ButtonId::Cross => self.cross,
             ButtonId::Square => self.square,

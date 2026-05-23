@@ -10,11 +10,11 @@ pub mod control_ids;
 pub mod state;
 
 pub use dualsense::Dualsense;
+pub use state_event::StateEvent;
 pub use states_buffer::DualsenseStatesBuffer;
 pub use tilt::{Radians, Tilt};
 pub use tilt_estimator::{TiltEstimates, TiltEstimator, TiltEstimatorConfig};
 pub use timestamped::Timestamped;
-pub use state_event::StateEvent;
 
 /// Dualsense HID device vendor identifier
 pub const VENDOR_ID: u16 = 1356;
