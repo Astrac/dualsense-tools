@@ -7,8 +7,15 @@ mod vjoy;
 
 mod error;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[allow(dead_code)]
+pub enum FeederId {
+    VJoy,
+    Unsupported,
+}
+
 pub trait EmulatedStateFeeder {
-    fn description(&self) -> String;
+    fn id(&self) -> FeederId;
     fn feed_state(&mut self, state: &EmulatedGamepad) -> Result<(), error::Error>;
 }
 
@@ -32,6 +39,6 @@ impl Feeder {
 #[cfg(not(target_os = "windows"))]
 impl Feeder {
     pub fn auto() -> Result<impl EmulatedStateFeeder, error::Error> {
-        Ok(unsupported::Dummy)
+        Ok(unsupported::Unsupported)
     }
 }

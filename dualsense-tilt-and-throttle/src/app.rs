@@ -1,11 +1,14 @@
-use crate::emulated::EmulatedGamepad;
-use crossbeam_channel::Receiver;
+use crate::term_ui::RenderState;
 use eframe::egui::{CentralPanel, ViewportBuilder};
 use egui_ratatui::RataguiBackend;
 use ratatui::Terminal;
 use rusttype::Font;
 use soft_ratatui::SoftBackend;
-use std::{fmt::Display, time::Duration};
+use std::{
+    fmt::Display,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 #[derive(Clone, Copy, Debug)]
 struct FontLoadError;
@@ -19,8 +22,7 @@ impl Display for FontLoadError {
 impl std::error::Error for FontLoadError {}
 
 pub fn start(
-    states_recv: Receiver<EmulatedGamepad>,
-    feeder_description: String,
+    render_state: Arc<Mutex<RenderState>>,
     frame_duration: Duration,
 ) -> color_eyre::Result<()> {
     let options = eframe::NativeOptions {
@@ -31,9 +33,8 @@ pub fn start(
     let font_regular =
         Font::try_from_bytes(include_bytes!("../assets/FantasqueSansMono-Regular.otf"))
             .ok_or(FontLoadError)?;
-    let font_bold =
-        Font::try_from_bytes(include_bytes!("../assets/FantasqueSansMono-Bold.otf"))
-            .ok_or(FontLoadError)?;
+    let font_bold = Font::try_from_bytes(include_bytes!("../assets/FantasqueSansMono-Bold.otf"))
+        .ok_or(FontLoadError)?;
 
     let soft_backend = SoftBackend::<soft_ratatui::EmbeddedTTF>::new(
         60,
@@ -60,9 +61,10 @@ pub fn start(
                 ui.add(terminal.backend_mut());
             });
 
-            let state = states_recv.recv().expect("Cannot receive emulated state");
+            let render_state = render_state.lock().unwrap();
+
             terminal
-                .draw(crate::term_ui::render(state, feeder_description.as_str()))
+                .draw(crate::term_ui::render(&render_state))
                 .expect("TUI drawing error");
 
             ctx.request_repaint_after(frame_duration);

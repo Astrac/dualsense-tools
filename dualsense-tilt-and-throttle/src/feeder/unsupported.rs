@@ -1,14 +1,17 @@
-use crate::{emulated::EmulatedGamepad, feeder::EmulatedStateFeeder};
+use crate::{
+    emulated::EmulatedGamepad,
+    feeder::{EmulatedStateFeeder, FeederId},
+};
 
 #[derive(Default, Debug)]
-pub struct Dummy;
+pub struct Unsupported;
 
-impl EmulatedStateFeeder for Dummy {
+impl EmulatedStateFeeder for Unsupported {
     fn feed_state(&mut self, _state: &EmulatedGamepad) -> Result<(), super::error::Error> {
         Ok(())
     }
 
-    fn description(&self) -> String {
-        "Unsupported platform".to_owned()
+    fn id(&self) -> FeederId {
+        FeederId::Unsupported
     }
 }
