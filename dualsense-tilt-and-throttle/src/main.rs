@@ -5,17 +5,19 @@ mod emulator;
 mod feeder;
 mod term_ui;
 
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+    time::Duration,
+};
+
+use dualsense_tools::{Dualsense, TiltEstimator, TiltEstimatorConfig};
+
 use crate::{
     emulated::EmulatedGamepad,
     emulator::Emulator,
     feeder::EmulatedStateFeeder,
     term_ui::{DualsenseStatus, RenderState},
-};
-use dualsense_tools::{Dualsense, TiltEstimator, TiltEstimatorConfig};
-use std::{
-    sync::{Arc, Mutex},
-    thread,
-    time::Duration,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]

@@ -1,14 +1,16 @@
-use crate::term_ui::RenderState;
-use eframe::egui::{CentralPanel, ViewportBuilder};
-use egui_ratatui::RataguiBackend;
-use ratatui::Terminal;
-use rusttype::Font;
-use soft_ratatui::SoftBackend;
 use std::{
     fmt::Display,
     sync::{Arc, Mutex},
     time::Duration,
 };
+
+use eframe::egui::{CentralPanel, ViewportBuilder};
+use egui_ratatui::RataguiBackend;
+use ratatui::Terminal;
+use rusttype::Font;
+use soft_ratatui::SoftBackend;
+
+use crate::term_ui::RenderState;
 
 #[derive(Clone, Copy, Debug)]
 struct FontLoadError;

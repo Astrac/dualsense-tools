@@ -1,7 +1,8 @@
-use crate::emulated::EmulatedGamepad;
-use crate::feeder::FeederId;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, LineGauge, Paragraph};
+
+use crate::emulated::EmulatedGamepad;
+use crate::feeder::FeederId;
 
 const GREEN_BG: Color = Color::Rgb(0, 128, 0);
 const RED_BG: Color = Color::Rgb(128, 0, 0);

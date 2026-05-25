@@ -1,6 +1,7 @@
+use hidapi::{HidApi, HidDevice, HidResult};
+
 use crate::state::DualsenseState;
 use crate::{PRODUCT_ID, VENDOR_ID};
-use hidapi::{HidApi, HidDevice, HidResult};
 
 /// Interface used to interact with a Dualsense controller; encapsulates
 /// a [hidapi::HidDevice] and a buffer to be re-used when reading input

@@ -1,9 +1,10 @@
+use dualsense_tools::{
+    DualsenseStatesBuffer, Tilt, TiltEstimator, control_ids::ButtonId, state::DualsenseState,
+};
+
 use crate::{
     emulated::{EmulatedAxes, EmulatedGamepad},
     emulated_axis_value::EmulatedAxisValue,
-};
-use dualsense_tools::{
-    DualsenseStatesBuffer, Tilt, TiltEstimator, control_ids::ButtonId, state::DualsenseState,
 };
 
 pub struct Emulator<const N: usize> {

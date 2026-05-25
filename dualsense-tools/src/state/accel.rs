@@ -1,6 +1,8 @@
-use crate::state::SpatialSensor;
-use glam::Vec3;
 use std::ops::{Deref, DerefMut};
+
+use glam::Vec3;
+
+use crate::state::SpatialSensor;
 
 /// Represents readings from an accelerometer
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]

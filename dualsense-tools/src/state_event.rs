@@ -1,5 +1,6 @@
-use crate::{Timestamped, state::DualsenseState};
 use std::time::Duration;
+
+use crate::{Timestamped, state::DualsenseState};
 
 #[derive(Clone, Copy, Debug)]
 pub struct StateEvent<'a> {
@@ -8,8 +9,10 @@ pub struct StateEvent<'a> {
     pub evicted: Timestamped<DualsenseState>,
 }
 
-impl <'a> StateEvent<'a> {
+impl<'a> StateEvent<'a> {
     pub fn elapsed_time(&self) -> Duration {
-        self.current.timestamp.duration_since(self.previous.timestamp)
+        self.current
+            .timestamp
+            .duration_since(self.previous.timestamp)
     }
 }

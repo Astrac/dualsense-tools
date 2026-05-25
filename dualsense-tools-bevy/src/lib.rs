@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use bevy::{
     input::gamepad::{GamepadConnection, GamepadConnectionEvent},
     log,
@@ -5,7 +7,6 @@ use bevy::{
 };
 use dualsense_tools::*;
 use hidapi::HidApi;
-use std::sync::{Arc, Mutex};
 
 /// A plugin that integrate the tilt estimation algorithm implemented
 /// in the dualsense-tools crate as a bevy plugin.
@@ -74,9 +75,7 @@ fn update_tilt_tilt_system<const SAMPLES: usize>(
         let state = controller.lock().unwrap().read()?;
         let event = estimator.state_buffer.push(state);
 
-        estimator
-            .tilt_estimator
-            .next_estimate(event)
+        estimator.tilt_estimator.next_estimate(event)
     } else {
         TiltEstimates::default()
     };

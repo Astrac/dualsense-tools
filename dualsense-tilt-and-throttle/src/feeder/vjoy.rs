@@ -1,6 +1,6 @@
-use super::EmulatedStateFeeder;
 use vjoy::{ButtonState, Device, VJoy};
 
+use super::EmulatedStateFeeder;
 use crate::{
     emulated::{EmulatedGamepad, EmulatedHat},
     emulated_axis_value::EmulatedAxisValue,
@@ -54,8 +54,6 @@ impl EmulatedStateFeeder for VJoyFeeder {
 
         Ok(())
     }
-
-    const ID: FeederId = FeederId::VJoy;
 
     fn id(&self) -> FeederId {
         FeederId::VJoy

@@ -1,5 +1,6 @@
-use crate::{StateEvent, Timestamped, state::DualsenseState};
 use circular_buffer::CircularBuffer;
+
+use crate::{StateEvent, Timestamped, state::DualsenseState};
 
 #[derive(Clone, Debug)]
 pub struct DualsenseStatesBuffer<const BUFSIZE: usize> {

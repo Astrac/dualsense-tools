@@ -1,8 +1,9 @@
-use crate::{
-    control_ids::{AxisId, ButtonId}, hid_report, state::{DualsenseAxisValue, DualsenseSensorValue}
-};
-
 use super::{Accel, DualsenseAxes, Gyro, HatDirection};
+use crate::{
+    control_ids::{AxisId, ButtonId},
+    hid_report,
+    state::{DualsenseAxisValue, DualsenseSensorValue},
+};
 
 /// Represents the state of a Dualsense controller as read from a HID report
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
