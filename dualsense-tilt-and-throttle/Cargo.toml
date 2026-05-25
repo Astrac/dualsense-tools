@@ -6,15 +6,17 @@ publish = false
 
 [dependencies]
 color-eyre = "0.6"
-cosmic-text = "0.19.0"
-crossbeam-channel = "0.5.15"
-dualsense-tools = { path = "../dualsense-tools/" }
-eframe = "0.34.2"
-egui_ratatui = "2.2.0"
+cosmic-text = "0.19"
+crossbeam-channel = "0.5"
+dualsense-tools = { path = "../dualsense-tools/", features = ["serde"] }
+eframe = "0.34"
+egui_ratatui = "2.2"
 hidapi = "2.6"
 ratatui = "0.30"
-soft_ratatui = { version = "0.2.0", features = ["embedded-ttf"] }
-rusttype = "0.9.3"
+rusttype = "0.9"
+serde = { version = "1.0", features = [ "serde_derive" ] }
+soft_ratatui = { version = "0.2", features = ["embedded-ttf"] }
+toml = "1.1.2"
 
 [target.'cfg(windows)'.dependencies]
 vjoy = { version = "0.7" }

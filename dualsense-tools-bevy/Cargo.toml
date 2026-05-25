@@ -1,18 +1,18 @@
 [package]
 name = "dualsense-tools-bevy"
 version = "0.1.0"
+description = "Bevy integration for dualsense_tools"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/Astrac/dualsense-tools"
+readme = "README.md"
 documentation = "https://docs.rs/dualsense_tools_bevy"
 homepage = "https://github.com/Astrac/dualsense-tools/tree/main/dualsense-tools-bevy"
-readme = "README.md"
-description = "Bevy integration for dualsense_tools"
+repository = "https://github.com/Astrac/dualsense-tools"
 keywords = ["gamepad", "controller", "input", "gamedev"]
 categories = ["game-development", "game-engine"]
 
 [dependencies]
-hidapi = "2.6"
 bevy = { version = "0.18", features = ["glam_assert"] }
-glam = "0.32"
 dualsense-tools = { path = "../dualsense-tools/" }
+glam = "0.32"
+hidapi = "2.6"

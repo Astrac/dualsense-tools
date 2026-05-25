@@ -1,5 +1,10 @@
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Identifies the buttons of a Dualsense controller
 #[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+// TODO: Add Ps button
 pub enum ButtonId {
     Cross,
     Square,
@@ -11,6 +16,7 @@ pub enum ButtonId {
     R2,
     L3,
     R3,
+    #[cfg_attr(feature = "serde", serde(rename = "Option"))]
     Opt,
     Share,
     Mic,
@@ -19,6 +25,7 @@ pub enum ButtonId {
 
 /// Identifies the axes of a Dualsense controller
 #[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum AxisId {
     LX,
     LY,

@@ -1,17 +1,18 @@
 [package]
 name = "dualsense-tools"
 version = "0.1.0"
+description = "Tools to interact with the Dualsense PS5 controller"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/Astrac/dualsense-tools"
+readme = "README.md"
 documentation = "https://docs.rs/dualsense_tools"
 homepage = "https://github.com/Astrac/dualsense-tools"
-readme = "README.md"
-description = "Tools to interact with the Dualsense PS5 controller"
+repository = "https://github.com/Astrac/dualsense-tools"
 keywords = ["gamepad", "controller", "input", "gamedev"]
 categories = ["game-development"]
 
 [dependencies]
-hidapi = "2.6.5"
-glam = "0.32.1"
 circular-buffer = "1.2.0"
+glam = "0.32.1"
+hidapi = "2.6.5"
+serde = { version = "1.0", optional = true, features = ["serde_derive"] }
