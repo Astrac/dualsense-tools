@@ -71,6 +71,7 @@ impl DualsenseState {
             ButtonId::Share => self.share,
             ButtonId::Mic => self.mic,
             ButtonId::TouchClick => self.touch_click,
+            ButtonId::Ps => self.ps
         }
     }
 }

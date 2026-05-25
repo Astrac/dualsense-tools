@@ -1,8 +1,8 @@
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, LineGauge, Paragraph};
 
-use crate::emulated::EmulatedGamepad;
-use crate::feeder::FeederId;
+use crate::feeder::FeederBackendId;
+use crate::virtual_controller::VirtualControllerState;
 
 const GREEN_BG: Color = Color::Rgb(0, 128, 0);
 const RED_BG: Color = Color::Rgb(128, 0, 0);
@@ -17,7 +17,7 @@ pub enum FeederStatus {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FeederState {
-    id: FeederId,
+    id: FeederBackendId,
     status: FeederStatus,
 }
 
@@ -29,15 +29,15 @@ pub enum DualsenseStatus {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RenderState {
-    pub emulation: EmulatedGamepad,
+    pub virtual_controller: VirtualControllerState,
     pub feeder: FeederState,
     pub dualsense: DualsenseStatus,
 }
 
 impl RenderState {
-    pub fn new(feeder_id: FeederId) -> RenderState {
+    pub fn new(feeder_id: FeederBackendId) -> RenderState {
         RenderState {
-            emulation: EmulatedGamepad::default(),
+            virtual_controller: VirtualControllerState::default(),
             dualsense: DualsenseStatus::Disconnected,
             feeder: FeederState {
                 id: feeder_id,
@@ -71,7 +71,7 @@ pub fn render(state: &RenderState) -> impl FnMut(&mut Frame) {
         ] = frame.area().layout(&layout);
 
         render_title(frame, title_area);
-        render_axes(frame, axes_area, &state.emulation);
+        render_axes(frame, axes_area, &state.virtual_controller);
         render_buttons_and_diagnostics(frame, buttons_and_feeder_area, state);
         render_footer(frame, footer_area);
     }
@@ -99,7 +99,7 @@ fn render_diagnostics(frame: &mut Frame<'_>, feeder_info_area: Rect, state: &Ren
     frame.render_widget(
         Paragraph::new(format!(
             "Tilt emulation: {}",
-            if state.emulation.is_tilt_enabled {
+            if state.virtual_controller.is_tilt_enabled {
                 "Enabled"
             } else {
                 "Disabled"
@@ -141,11 +141,11 @@ fn render_buttons_and_diagnostics(frame: &mut Frame, area: Rect, state: &RenderS
 
     let [buttons_area, diagnostics_area] = area.layout(&Layout::horizontal(columns).spacing(1));
 
-    render_buttons(frame, buttons_area, &state.emulation);
+    render_buttons(frame, buttons_area, &state.virtual_controller);
     render_diagnostics(frame, diagnostics_area, state);
 }
 
-fn render_buttons(frame: &mut Frame, area: Rect, state: &EmulatedGamepad) {
+fn render_buttons(frame: &mut Frame, area: Rect, state: &VirtualControllerState) {
     frame.render_widget(Block::bordered().title("Emulated Buttons"), area);
 
     let vertical = Layout::vertical([Constraint::Length(1); 3]).spacing(1);
@@ -156,9 +156,30 @@ fn render_buttons(frame: &mut Frame, area: Rect, state: &EmulatedGamepad) {
         .into_iter()
         .flat_map(|row| row.layout_vec(&horizontal));
 
+    let buttons = {
+        let b = &state.buttons;
+        [
+            b.square,
+            b.triangle,
+            b.circle,
+            b.cross,
+            b.l1,
+            b.r1,
+            b.l2,
+            b.r2,
+            b.l3,
+            b.r3,
+            b.option,
+            b.share,
+            b.touch_click,
+            b.ps,
+            b.mic,
+        ]
+    };
+
     for (i, cell) in buttons_cells.enumerate() {
-        if i < state.buttons.len() {
-            let button_fg = if state.buttons[i] { GREEN_BG } else { RED_BG };
+        if i < buttons.len() {
+            let button_fg = if buttons[i] { GREEN_BG } else { RED_BG };
 
             frame.render_widget(
                 Paragraph::new(format!("Button {i:02}"))
@@ -171,7 +192,7 @@ fn render_buttons(frame: &mut Frame, area: Rect, state: &EmulatedGamepad) {
     }
 }
 
-fn render_axes(frame: &mut Frame, axes_area: Rect, state: &EmulatedGamepad) {
+fn render_axes(frame: &mut Frame, axes_area: Rect, state: &VirtualControllerState) {
     let axes_cols = [Constraint::Fill(1); 2];
     let [left, right] = axes_area
         .inner(Margin::new(0, 2))

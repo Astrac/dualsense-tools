@@ -1,9 +1,7 @@
 mod app;
-mod emulated;
-mod emulated_axis_value;
-mod emulator;
 mod feeder;
 mod term_ui;
+mod virtual_controller;
 
 use std::{
     sync::{Arc, Mutex},
@@ -14,10 +12,9 @@ use std::{
 use dualsense_tools::{Dualsense, TiltEstimator, TiltEstimatorConfig};
 
 use crate::{
-    emulated::EmulatedGamepad,
-    emulator::Emulator,
     feeder::EmulatedStateFeeder,
     term_ui::{DualsenseStatus, RenderState},
+    virtual_controller::{VirtualController, VirtualControllerState},
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -29,7 +26,7 @@ pub enum Commands {
 pub enum PollingEvents {
     Connected,
     Disconnected,
-    StateAvailable(EmulatedGamepad),
+    StateAvailable(VirtualControllerState),
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -38,7 +35,7 @@ fn main() -> color_eyre::Result<()> {
     let mut api = hidapi::HidApi::new().expect("Cannot initialize HID API");
 
     let tilt_estimator = TiltEstimator::<20>::new(TiltEstimatorConfig::default());
-    let mut emulator = Emulator::new(tilt_estimator);
+    let mut controller = VirtualController::new(tilt_estimator);
     let frame_duration = Duration::from_millis(15);
 
     let (polling_tx, polling_rx) = crossbeam_channel::bounded(20);
@@ -52,7 +49,7 @@ fn main() -> color_eyre::Result<()> {
             let event = match device {
                 Some(ref mut d) => match d.read() {
                     Ok(ds_state) => {
-                        let state = emulator.handle_dualsense_state(ds_state);
+                        let state = controller.handle_dualsense(ds_state);
                         Some(PollingEvents::StateAvailable(state))
                     }
                     Err(_) => {
@@ -84,8 +81,8 @@ fn main() -> color_eyre::Result<()> {
         }
     });
 
-    let mut feeder = feeder::Feeder::auto()?;
-    let feeder_id = feeder.id();
+    let mut feeder = feeder::FeederBackend::auto()?;
+    let feeder_id = feeder.backend();
     let feeding_rx = polling_rx.clone();
     let feeding = thread::spawn(move || {
         for event in feeding_rx {
@@ -102,11 +99,11 @@ fn main() -> color_eyre::Result<()> {
         for event in render_state_updater_rx {
             let mut render_state = render_state_updater_state.lock().unwrap();
             match event {
-                PollingEvents::StateAvailable(state) => render_state.emulation = state,
+                PollingEvents::StateAvailable(state) => render_state.virtual_controller = state,
                 PollingEvents::Connected => render_state.dualsense = DualsenseStatus::Connected,
                 PollingEvents::Disconnected => {
                     render_state.dualsense = DualsenseStatus::Disconnected;
-                    render_state.emulation = EmulatedGamepad::default();
+                    render_state.virtual_controller = Default::default();
                 }
             }
         }

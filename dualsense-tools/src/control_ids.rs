@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 /// Identifies the buttons of a Dualsense controller
 #[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-// TODO: Add Ps button
 pub enum ButtonId {
     Cross,
     Square,
@@ -21,6 +20,7 @@ pub enum ButtonId {
     Share,
     Mic,
     TouchClick,
+    Ps
 }
 
 /// Identifies the axes of a Dualsense controller

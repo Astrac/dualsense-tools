@@ -1,0 +1,11 @@
+description = "Roll, pitch and throttle"
+
+buttons = []
+
+axes = [
+    "Pitch",
+    "Roll",
+    "Throttle",
+]
+
+tilt_switch_trigger = [ "Mic" ]

@@ -4,7 +4,7 @@ use super::EmulatedStateFeeder;
 use crate::{
     emulated::{EmulatedGamepad, EmulatedHat},
     emulated_axis_value::EmulatedAxisValue,
-    feeder::FeederId,
+    feeder::FeederBackendId,
 };
 
 pub struct VJoyFeeder {
@@ -55,8 +55,8 @@ impl EmulatedStateFeeder for VJoyFeeder {
         Ok(())
     }
 
-    fn id(&self) -> FeederId {
-        FeederId::VJoy
+    fn backend(&self) -> FeederBackendId {
+        FeederBackendId::VJoyFullWithThrottle
     }
 }
 

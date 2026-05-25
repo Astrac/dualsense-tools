@@ -1,0 +1,32 @@
+description = "Full emulation, 8-axis"
+
+buttons = [
+    "Square",
+    "Triangle",
+    "Cross",
+    "Circle",
+    "L1",
+    "R1",
+    "L2",
+    "R2",
+    "L3",
+    "R3",
+    "Option",
+    "Share",
+    "TouchClick",
+    "Ps",
+    "Mic",
+]
+
+axes = [
+    "LX",
+    "LY",
+    "LZ",
+    "RX",
+    "RY",
+    "RZ",
+    "Pitch",
+    "Roll",
+]
+
+tilt_switch_trigger = [ "Mic" ]

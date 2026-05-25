@@ -1,0 +1,29 @@
+description = "Full emulation, 6-axis and throttle"
+
+buttons = [
+    "Square",
+    "Triangle",
+    "Cross",
+    "Circle",
+    "L1",
+    "R1",
+    "L3",
+    "R3",
+    "Option",
+    "Share",
+    "TouchClick",
+    "Ps",
+    "Mic",
+]
+
+axes = [
+    "LX",
+    "LY",
+    "RY",
+    "RY",
+    "Pitch",
+    "Roll",
+    "Throttle",
+]
+
+tilt_switch_trigger = [ "Mic" ]
