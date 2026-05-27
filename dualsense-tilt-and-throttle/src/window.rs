@@ -23,7 +23,7 @@ impl Display for FontLoadError {
 
 impl std::error::Error for FontLoadError {}
 
-pub fn start(
+pub fn init(
     render_state: Arc<Mutex<RenderState>>,
     frame_duration: Duration,
 ) -> color_eyre::Result<()> {
