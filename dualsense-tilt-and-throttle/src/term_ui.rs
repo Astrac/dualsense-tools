@@ -1,7 +1,6 @@
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, LineGauge, Paragraph};
 
-use crate::feeder::FeederBackendId;
 use crate::virtual_controller::VirtualControllerState;
 
 const GREEN_BG: Color = Color::Rgb(0, 128, 0);
@@ -17,7 +16,7 @@ pub enum FeederStatus {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FeederState {
-    id: FeederBackendId,
+    id: &'static str,
     status: FeederStatus,
 }
 
@@ -35,7 +34,7 @@ pub struct RenderState {
 }
 
 impl RenderState {
-    pub fn new(feeder_id: FeederBackendId) -> RenderState {
+    pub fn new(feeder_id: &'static str) -> RenderState {
         RenderState {
             virtual_controller: VirtualControllerState::default(),
             dualsense: DualsenseStatus::Disconnected,

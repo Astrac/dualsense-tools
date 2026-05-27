@@ -11,8 +11,9 @@ use std::{
 
 use dualsense_tools::{Dualsense, TiltEstimator, TiltEstimatorConfig};
 
+use crate::feeder::Feeder;
 use crate::{
-    feeder::EmulatedStateFeeder,
+    feeder::{ConfiguredFeeder, Feeders},
     term_ui::{DualsenseStatus, RenderState},
     virtual_controller::{VirtualController, VirtualControllerState},
 };
@@ -81,18 +82,21 @@ fn main() -> color_eyre::Result<()> {
         }
     });
 
-    let mut feeder = feeder::FeederBackend::auto()?;
-    let feeder_id = feeder.backend();
     let feeding_rx = polling_rx.clone();
     let feeding = thread::spawn(move || {
+        let backend = feeder::backend::auto();
+        let mut feeders = Feeders::new().unwrap();
+        let feeder_config = feeders.next();
+        let mut feeder = ConfiguredFeeder::new(backend, &feeder_config);
+
         for event in feeding_rx {
             if let PollingEvents::StateAvailable(state) = event {
-                feeder.feed_state(&state).unwrap();
+                feeder.feed(&state).unwrap();
             }
         }
     });
 
-    let render_state_shared = Arc::new(Mutex::new(RenderState::new(feeder_id)));
+    let render_state_shared = Arc::new(Mutex::new(RenderState::new("TODO")));
     let render_state_updater_rx = polling_rx.clone();
     let render_state_updater_state = render_state_shared.clone();
     let render_state_updater = thread::spawn(move || {

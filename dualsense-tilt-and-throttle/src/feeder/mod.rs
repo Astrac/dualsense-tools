@@ -1,17 +1,16 @@
-use crate::virtual_controller::VirtualControllerState;
-
-mod backend;
+pub mod backend;
 mod config;
+mod configured;
 mod error;
 mod feeders;
 
-#[cfg(target_os = "windows")]
-mod vjoy;
+pub use configured::ConfiguredFeeder;
+pub use feeders::Feeders;
 
-pub use backend::FeederBackend;
-pub use backend::FeederBackendId;
+use crate::virtual_controller::VirtualControllerState;
 
-pub trait EmulatedStateFeeder {
-    fn backend(&self) -> FeederBackendId;
-    fn feed_state(&mut self, state: &VirtualControllerState) -> Result<(), error::Error>;
+pub trait Feeder {
+    type Error;
+
+    fn feed(&mut self, state: &VirtualControllerState) -> Result<(), Self::Error>;
 }

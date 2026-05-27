@@ -19,14 +19,16 @@ buttons = [
 ]
 
 axes = [
-    "LX",
-    "LY",
-    "LZ",
+    "X",
+    "Y",
+    "Z",
     "RX",
     "RY",
     "RZ",
     "Pitch",
     "Roll",
 ]
+
+hat = true
 
 tilt_switch_trigger = [ "Mic" ]

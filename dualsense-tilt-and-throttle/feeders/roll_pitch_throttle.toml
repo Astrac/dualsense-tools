@@ -7,4 +7,6 @@ axes = [
     "Roll",
 ]
 
+hat = false
+
 tilt_switch_trigger = [ "Mic" ]

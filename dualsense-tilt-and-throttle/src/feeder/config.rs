@@ -1,22 +1,14 @@
-use std::{collections::HashSet};
+use std::collections::HashSet;
 
-use dualsense_tools::control_ids::{AxisId, ButtonId};
+use crate::virtual_controller::{AxisId, ButtonId};
 use serde::Deserialize;
 
-#[derive(Deserialize)]
-pub enum AxisMapping {
-    Pitch,
-    Roll,
-    Throttle,
-    #[serde(untagged)]
-    Axis(AxisId),
-}
-
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct FeederConfig {
     pub description: String,
     pub buttons: Vec<ButtonId>,
-    pub axes: Vec<AxisMapping>,
+    pub axes: Vec<AxisId>,
+    pub hat: bool,
     pub tilt_switch_trigger: HashSet<ButtonId>,
 }
 

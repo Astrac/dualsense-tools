@@ -8,4 +8,6 @@ axes = [
     "Throttle",
 ]
 
+hat = false
+
 tilt_switch_trigger = [ "Mic" ]
