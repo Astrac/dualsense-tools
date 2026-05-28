@@ -11,7 +11,7 @@ use ratatui::Terminal;
 use rusttype::Font;
 use soft_ratatui::SoftBackend;
 
-use crate::{term_ui::RenderState, threads::Commands};
+use crate::{term_ui::UiState, threads::Command};
 
 #[derive(Clone, Copy, Debug)]
 struct FontLoadError;
@@ -25,8 +25,8 @@ impl Display for FontLoadError {
 impl std::error::Error for FontLoadError {}
 
 pub fn init(
-    render_state: Arc<Mutex<RenderState>>,
-    commands: Sender<Commands>,
+    render_state: Arc<Mutex<UiState>>,
+    commands: Sender<Command>,
     frame_duration: Duration,
 ) -> color_eyre::Result<()> {
     let options = eframe::NativeOptions {
@@ -74,11 +74,11 @@ pub fn init(
             ctx.request_repaint_after(frame_duration);
 
             if ctx.input(|r| r.key_pressed(Key::F)) {
-                commands.send(Commands::NextFeeder).unwrap();
+                commands.send(Command::NextFeeder).unwrap();
             }
 
             if ctx.input(|r| r.key_pressed(Key::Q)) {
-                commands.send(Commands::Quit).unwrap();
+                commands.send(Command::Quit).unwrap();
                 ctx.send_viewport_cmd(ViewportCommand::Close);
             }
         },

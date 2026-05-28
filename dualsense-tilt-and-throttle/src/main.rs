@@ -1,3 +1,4 @@
+mod channels;
 mod feeder;
 mod term_ui;
 mod threads;
@@ -9,10 +10,10 @@ use std::{
     time::Duration,
 };
 
-use dualsense_tools::{TiltEstimator, TiltEstimatorConfig};
+use dualsense_tools::TiltEstimatorConfig;
 use spdlog::formatter::FullFormatter;
 
-use crate::{term_ui::RenderState, virtual_controller::VirtualController};
+use crate::term_ui::UiState;
 
 /// In Hertz
 const POLL_FREQUENCY: u8 = 120;
@@ -27,29 +28,24 @@ async fn main() -> color_eyre::Result<()> {
 
     log::info!("Initializing...");
 
-    let api = hidapi::HidApi::new().expect("Cannot initialize HID API");
-    log::info!("Hid API initialized");
-
-    let tilt_estimator = TiltEstimator::<20>::new(TiltEstimatorConfig::default());
-    let controller = VirtualController::new(tilt_estimator);
-
-    let (polling_tx, polling_rx) = tokio::sync::broadcast::channel(100);
-    let (command_tx, command_rx) = tokio::sync::broadcast::channel(100);
-
-    let render_state_shared = Arc::new(Mutex::new(RenderState::new("TODO")));
+    let channels = channels::Channels::new();
 
     let mut poller = threads::Poller::new(
-        api,
-        controller,
-        command_tx.subscribe(),
-        polling_tx.clone(),
+        TiltEstimatorConfig::<20>::default(),
+        channels.commands.subscribe(),
+        channels.polling.dispatch(),
         POLL_PERIOD,
     );
 
-    let mut feeder = threads::Feeder::new(polling_tx.subscribe(), command_tx.subscribe());
+    let mut feeder =
+        threads::Feeder::new(channels.polling.subscribe(), channels.commands.subscribe());
 
-    let mut ui_updater =
-        threads::UIUpdater::new(polling_rx, command_rx, render_state_shared.clone());
+    let ui_state = Arc::new(Mutex::new(UiState::new()));
+    let mut ui_updater = threads::UIUpdater::new(
+        channels.polling.subscribe(),
+        channels.commands.subscribe(),
+        ui_state.clone(),
+    );
 
     log::info!("Starting background threads...");
 
@@ -57,9 +53,9 @@ async fn main() -> color_eyre::Result<()> {
     let feeding = tokio::spawn(async move { feeder.run().await.unwrap() });
     let ui_updating = tokio::spawn(async move { ui_updater.run().await.unwrap() });
 
-    log::info!("Background threads started");
+    log::info!("Background threads started, main UI is starting");
 
-    window::init(render_state_shared, command_tx.clone(), POLL_PERIOD)?;
+    window::init(ui_state, channels.commands.dispatch(), POLL_PERIOD)?;
 
     log::info!("Main window closed - shutting down...");
 

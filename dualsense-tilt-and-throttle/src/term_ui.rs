@@ -27,26 +27,26 @@ pub enum DualsenseStatus {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct RenderState {
+pub struct UiState {
     pub virtual_controller: VirtualControllerState,
     pub feeder: FeederState,
     pub dualsense: DualsenseStatus,
 }
 
-impl RenderState {
-    pub fn new(feeder_id: &'static str) -> RenderState {
-        RenderState {
+impl UiState {
+    pub fn new() -> UiState {
+        UiState {
             virtual_controller: VirtualControllerState::default(),
             dualsense: DualsenseStatus::Disconnected,
             feeder: FeederState {
-                id: feeder_id,
+                id: "TODO",
                 status: FeederStatus::Running,
             },
         }
     }
 }
 
-pub fn render(state: &RenderState) -> impl FnMut(&mut Frame) {
+pub fn render(state: &UiState) -> impl FnMut(&mut Frame) {
     move |frame| {
         frame.render_widget(Block::default().bg(Color::Rgb(20, 20, 40)), frame.area());
 
@@ -76,7 +76,7 @@ pub fn render(state: &RenderState) -> impl FnMut(&mut Frame) {
     }
 }
 
-fn render_diagnostics(frame: &mut Frame<'_>, feeder_info_area: Rect, state: &RenderState) {
+fn render_diagnostics(frame: &mut Frame<'_>, feeder_info_area: Rect, state: &UiState) {
     frame.render_widget(Block::bordered().title("Diagnostics"), feeder_info_area);
 
     let layout = Layout::vertical([Constraint::Length(1); 3]).spacing(0);
@@ -135,7 +135,7 @@ fn render_footer(frame: &mut Frame, footer_area: Rect) {
     );
 }
 
-fn render_buttons_and_diagnostics(frame: &mut Frame, area: Rect, state: &RenderState) {
+fn render_buttons_and_diagnostics(frame: &mut Frame, area: Rect, state: &UiState) {
     let columns = [Constraint::Length(63), Constraint::Min(30)];
 
     let [buttons_area, diagnostics_area] = area.layout(&Layout::horizontal(columns).spacing(1));

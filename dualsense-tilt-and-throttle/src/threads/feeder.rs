@@ -2,16 +2,16 @@ use tokio::sync::broadcast::Receiver;
 
 use crate::{
     feeder::{ConfiguredFeeder, Feeder as _, Feeders, backend},
-    threads::{Commands, PollingEvent},
+    threads::{Command, PollingEvent},
 };
 
 pub struct Feeder {
     polling_events: Receiver<PollingEvent>,
-    commands: Receiver<Commands>,
+    commands: Receiver<Command>,
 }
 
 impl Feeder {
-    pub fn new(polling_events: Receiver<PollingEvent>, commands: Receiver<Commands>) -> Feeder {
+    pub fn new(polling_events: Receiver<PollingEvent>, commands: Receiver<Command>) -> Feeder {
         Feeder {
             polling_events,
             commands,
@@ -33,11 +33,11 @@ impl Feeder {
                     },
                 event = self.commands.recv() =>
                     match event? {
-                        Commands::NextFeeder => {
+                        Command::NextFeeder => {
                             feeder = ConfiguredFeeder::new(&mut backend, &feeders.next());
                             log::info!("Feeder selected: {}", feeder.config.description)
                         }
-                        Commands::Quit => {
+                        Command::Quit => {
                             break
                         }
                     },

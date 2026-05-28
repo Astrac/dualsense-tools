@@ -1,12 +1,11 @@
 use std::time::Duration;
 
 use color_eyre::eyre::Result;
-use dualsense_tools::Dualsense;
-use hidapi::HidApi;
+use dualsense_tools::{Dualsense, TiltEstimator, TiltEstimatorConfig};
 use tokio::sync::broadcast::{Receiver, Sender};
 
 use crate::{
-    threads::Commands,
+    threads::Command,
     virtual_controller::{VirtualController, VirtualControllerState},
 };
 
@@ -18,9 +17,8 @@ pub enum PollingEvent {
 }
 
 pub struct Poller<const N: usize> {
-    hid_api: HidApi,
-    controller: VirtualController<N>,
-    commands: Receiver<Commands>,
+    tilt_estimator_config: TiltEstimatorConfig<N>,
+    commands: Receiver<Command>,
     polling_events: Sender<PollingEvent>,
     poll_period: Duration,
     device: Option<Dualsense>,
@@ -28,16 +26,14 @@ pub struct Poller<const N: usize> {
 
 impl<const N: usize> Poller<N> {
     pub fn new(
-        hid_api: HidApi,
-        controller: VirtualController<N>,
-        commands: Receiver<Commands>,
+        tilt_estimator_config: TiltEstimatorConfig<N>,
+        commands: Receiver<Command>,
         polling_events: Sender<PollingEvent>,
         poll_period: Duration,
     ) -> Poller<N> {
         Poller {
+            tilt_estimator_config,
             commands,
-            controller,
-            hid_api,
             poll_period,
             polling_events,
             device: None,
@@ -47,15 +43,20 @@ impl<const N: usize> Poller<N> {
 
 impl<const N: usize> Poller<N> {
     pub fn run(&mut self) -> Result<()> {
+        let mut hid_api = hidapi::HidApi::new()?;
+        log::info!("Hid API initialized");
+
+        let mut controller = VirtualController::new(TiltEstimator::new(self.tilt_estimator_config));
+
         loop {
-            if self.commands.try_recv() == Ok(Commands::Quit) {
+            if self.commands.try_recv() == Ok(Command::Quit) {
                 break;
             }
 
             let event = match self.device {
                 Some(ref mut d) => match d.read() {
                     Ok(ds_state) => {
-                        let state = self.controller.handle_dualsense(ds_state);
+                        let state = controller.handle_dualsense(ds_state);
                         Some(PollingEvent::StateAvailable(state))
                     }
                     Err(err) => {
@@ -65,7 +66,7 @@ impl<const N: usize> Poller<N> {
                     }
                 },
                 None => {
-                    if let Ok(ds) = Dualsense::new(&mut self.hid_api) {
+                    if let Ok(ds) = Dualsense::new(&mut hid_api) {
                         log::info!("Connected new dualsense device");
                         self.device = Some(ds);
                         Some(PollingEvent::Connected)

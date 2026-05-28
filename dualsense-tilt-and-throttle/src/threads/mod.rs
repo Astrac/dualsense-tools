@@ -7,7 +7,7 @@ pub use poller::{Poller, PollingEvent};
 pub use ui_updater::UIUpdater;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Commands {
+pub enum Command {
     NextFeeder,
     Quit,
 }

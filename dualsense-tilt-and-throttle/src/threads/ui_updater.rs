@@ -3,22 +3,22 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast::Receiver;
 
 use crate::{
-    term_ui::{DualsenseStatus, RenderState},
-    threads::{Commands, PollingEvent},
+    term_ui::{DualsenseStatus, UiState},
+    threads::{Command, PollingEvent},
     virtual_controller::VirtualControllerState,
 };
 
 pub struct UIUpdater {
     polling_events: Receiver<PollingEvent>,
-    commands: Receiver<Commands>,
-    ui_state: Arc<Mutex<RenderState>>,
+    commands: Receiver<Command>,
+    ui_state: Arc<Mutex<UiState>>,
 }
 
 impl UIUpdater {
     pub fn new(
         polling_events: Receiver<PollingEvent>,
-        commands: Receiver<Commands>,
-        ui_state: Arc<Mutex<RenderState>>,
+        commands: Receiver<Command>,
+        ui_state: Arc<Mutex<UiState>>,
     ) -> UIUpdater {
         UIUpdater {
             polling_events,
@@ -33,7 +33,7 @@ impl UIUpdater {
                 event = self.polling_events.recv() => self.handle_polling_event(event?),
                 command = self.commands.recv() => {
                     match command? {
-                        Commands::Quit => {
+                        Command::Quit => {
                             break
                         }
                         _ => ()
