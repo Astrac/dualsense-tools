@@ -1,12 +1,12 @@
 use std::time::Duration;
 
 use color_eyre::eyre::Result;
-use crossbeam_channel::{Receiver, Sender};
 use dualsense_tools::Dualsense;
 use hidapi::HidApi;
+use tokio::sync::broadcast::{Receiver, Sender};
 
 use crate::{
-    Commands,
+    threads::Commands,
     virtual_controller::{VirtualController, VirtualControllerState},
 };
 
@@ -48,22 +48,29 @@ impl<const N: usize> Poller<N> {
 impl<const N: usize> Poller<N> {
     pub fn run(&mut self) -> Result<()> {
         loop {
+            if self.commands.try_recv() == Ok(Commands::Quit) {
+                break;
+            }
+
             let event = match self.device {
                 Some(ref mut d) => match d.read() {
                     Ok(ds_state) => {
                         let state = self.controller.handle_dualsense(ds_state);
                         Some(PollingEvent::StateAvailable(state))
                     }
-                    Err(_) => {
+                    Err(err) => {
+                        log::info!("Cannot read state of controller - error: {}", err);
                         self.device = None;
                         Some(PollingEvent::Disconnected)
                     }
                 },
                 None => {
                     if let Ok(ds) = Dualsense::new(&mut self.hid_api) {
+                        log::info!("Connected new dualsense device");
                         self.device = Some(ds);
                         Some(PollingEvent::Connected)
                     } else {
+                        log::debug!("No device found");
                         None
                     }
                 }
@@ -73,13 +80,10 @@ impl<const N: usize> Poller<N> {
                 self.polling_events.send(ev)?;
             }
 
-            if self.commands.try_recv() == Ok(Commands::Quit) {
-                break;
-            }
-
             std::thread::sleep(self.poll_period);
         }
 
+        log::info!("Poller quitting");
         Ok(())
     }
 }

@@ -1,31 +1,50 @@
-use crossbeam_channel::Receiver;
+use tokio::sync::broadcast::Receiver;
 
 use crate::{
     feeder::{ConfiguredFeeder, Feeder as _, Feeders, backend},
-    threads::PollingEvent,
+    threads::{Commands, PollingEvent},
 };
 
 pub struct Feeder {
     polling_events: Receiver<PollingEvent>,
+    commands: Receiver<Commands>,
 }
 
 impl Feeder {
-    pub fn new(polling_events: Receiver<PollingEvent>) -> Feeder {
-        Feeder { polling_events }
+    pub fn new(polling_events: Receiver<PollingEvent>, commands: Receiver<Commands>) -> Feeder {
+        Feeder {
+            polling_events,
+            commands,
+        }
     }
 
-    pub fn run(&self) -> color_eyre::Result<()> {
-        let backend = backend::auto();
+    pub async fn run(&mut self) -> color_eyre::Result<()> {
+        let mut backend = backend::auto();
         let mut feeders = Feeders::new().unwrap();
         let feeder_config = feeders.next();
-        let mut feeder = ConfiguredFeeder::new(backend, &feeder_config);
+        let mut feeder = ConfiguredFeeder::new(&mut backend, &feeder_config);
 
-        for event in self.polling_events.iter() {
-            if let PollingEvent::StateAvailable(state) = event {
-                feeder.feed(&state).unwrap();
+        loop {
+            tokio::select! {
+                event = self.polling_events.recv() =>
+                    // TODO: Handle backend errors and raise events to update UI
+                    if let PollingEvent::StateAvailable(state) = event? {
+                        feeder.feed(&state).unwrap();
+                    },
+                event = self.commands.recv() =>
+                    match event? {
+                        Commands::NextFeeder => {
+                            feeder = ConfiguredFeeder::new(&mut backend, &feeders.next());
+                            log::info!("Feeder selected: {}", feeder.config.description)
+                        }
+                        Commands::Quit => {
+                            break
+                        }
+                    },
             }
         }
 
+        log::info!("Feeder quitting");
         Ok(())
     }
 }

@@ -4,12 +4,12 @@ use crate::{
 };
 
 pub struct ConfiguredFeeder<'a, B: Backend> {
-    backend: B,
-    config: &'a FeederConfig,
+    backend: &'a mut B,
+    pub config: &'a FeederConfig,
 }
 
 impl<'a, B: Backend> ConfiguredFeeder<'a, B> {
-    pub fn new(backend: B, config: &'a FeederConfig) -> ConfiguredFeeder<'a, B> {
+    pub fn new(backend: &'a mut B, config: &'a FeederConfig) -> ConfiguredFeeder<'a, B> {
         ConfiguredFeeder { backend, config }
     }
 }

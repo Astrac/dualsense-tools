@@ -7,16 +7,18 @@ publish = false
 [dependencies]
 color-eyre = "0.6"
 cosmic-text = "0.19"
-crossbeam-channel = "0.5"
 dualsense-tools = { path = "../dualsense-tools/", features = ["serde"] }
 eframe = "0.34"
 egui_ratatui = "2.2"
 hidapi = "2.6"
+log = "0.4"
 ratatui = "0.30"
 rusttype = "0.9"
 serde = { version = "1.0", features = [ "serde_derive" ] }
 soft_ratatui = { version = "0.2", features = ["embedded-ttf"] }
-toml = "1.1.2"
+spdlog-rs = { version = "0.5", features = ["log"] }
+tokio = { version = "1.52", features = ["macros", "rt-multi-thread", "sync"] }
+toml = "1.1"
 
 [target.'cfg(windows)'.dependencies]
 vjoy = { version = "0.7" }

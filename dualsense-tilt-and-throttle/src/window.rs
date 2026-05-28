@@ -4,13 +4,14 @@ use std::{
     time::Duration,
 };
 
-use eframe::egui::{CentralPanel, ViewportBuilder};
+use tokio::sync::broadcast::Sender;
+use eframe::egui::{CentralPanel, Key, ViewportBuilder, ViewportCommand};
 use egui_ratatui::RataguiBackend;
 use ratatui::Terminal;
 use rusttype::Font;
 use soft_ratatui::SoftBackend;
 
-use crate::term_ui::RenderState;
+use crate::{term_ui::RenderState, threads::Commands};
 
 #[derive(Clone, Copy, Debug)]
 struct FontLoadError;
@@ -25,6 +26,7 @@ impl std::error::Error for FontLoadError {}
 
 pub fn init(
     render_state: Arc<Mutex<RenderState>>,
+    commands: Sender<Commands>,
     frame_duration: Duration,
 ) -> color_eyre::Result<()> {
     let options = eframe::NativeOptions {
@@ -70,6 +72,15 @@ pub fn init(
                 .expect("TUI drawing error");
 
             ctx.request_repaint_after(frame_duration);
+
+            if ctx.input(|r| r.key_pressed(Key::F)) {
+                commands.send(Commands::NextFeeder).unwrap();
+            }
+
+            if ctx.input(|r| r.key_pressed(Key::Q)) {
+                commands.send(Commands::Quit).unwrap();
+                ctx.send_viewport_cmd(ViewportCommand::Close);
+            }
         },
     )?;
 
