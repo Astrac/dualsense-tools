@@ -1,7 +1,10 @@
 use vjoy::{ButtonState, Device, HatState, VJoy};
 
 use crate::{
-    feeder::{backend::Backend, config::FeederConfig},
+    feeder::{
+        backend::{Backend, BackendError, BackendId},
+        config::FeederConfig,
+    },
     virtual_controller::{AxisValue, Hat},
 };
 
@@ -18,26 +21,18 @@ impl VJoyBackend {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum VJoyBackendError {
-    VJoyError(vjoy::Error),
-    NoCompatibleDevice,
-}
-
-impl From<vjoy::Error> for VJoyBackendError {
+impl From<vjoy::Error> for BackendError {
     fn from(value: vjoy::Error) -> Self {
-        VJoyBackendError::VJoyError(value)
+        BackendError::new(BackendId::VJoy, value.to_string())
     }
 }
 
 impl Backend for VJoyBackend {
-    type Error = VJoyBackendError;
-
-    fn name() -> &'static str {
-        "VJoy"
+    fn name() -> BackendId {
+        BackendId::VJoy
     }
 
-    fn set_layout(&mut self, config: FeederConfig) -> Result<(), Self::Error> {
+    fn set_layout(&mut self, config: &FeederConfig) -> Result<(), BackendError> {
         self.device = self.vjoy.devices_cloned().find(|d| {
             d.num_buttons() >= config.buttons.len()
                 && d.num_axes() >= config.axes.len()
@@ -46,7 +41,7 @@ impl Backend for VJoyBackend {
         Ok(())
     }
 
-    fn set_button(&mut self, idx: usize, state: bool) -> Result<(), Self::Error> {
+    fn set_button(&mut self, idx: usize, state: bool) -> Result<(), BackendError> {
         self.device.set_button(
             (idx + 1) as u8,
             if state {
@@ -57,21 +52,21 @@ impl Backend for VJoyBackend {
         )
     }
 
-    fn set_axis(&mut self, idx: usize, value: AxisValue) -> Result<(), Self::Error> {
+    fn set_axis(&mut self, idx: usize, value: AxisValue) -> Result<(), BackendError> {
         self.device
             .ok_or(VJoyBackend::NoCompatibleDevice)?
             .set_axis((idx + 1) as u32, to_vjoy_axis_value(value))
             .into()
     }
 
-    fn set_hat(&mut self, value: Hat) -> Result<(), Self::Error> {
+    fn set_hat(&mut self, value: Hat) -> Result<(), BackendError> {
         self.device
             .ok_or(VJoyBackend::NoCompatibleDevice)?
             .set_hat(1, HatState::Continuous(to_vjoy_hat_value(value)))
             .into()
     }
 
-    fn commit(&mut self) -> Result<(), Self::Error> {
+    fn commit(&mut self) -> Result<(), BackendError> {
         self.vjoy
             .update_device_state(&self.device.ok_or(VJoyBackend::NoCompatibleDevice)?)
             .into()

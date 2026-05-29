@@ -1,10 +1,10 @@
-mod feeder;
-mod poller;
-mod ui_updater;
+mod feeding;
+mod polling;
+mod updating_ui;
 
-pub use feeder::Feeder;
-pub use poller::{Poller, PollingEvent};
-pub use ui_updater::UIUpdater;
+pub use feeding::{Feeding, FeederEvent};
+pub use polling::{Polling, PollingEvent};
+pub use updating_ui::UpdatingUI;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Command {

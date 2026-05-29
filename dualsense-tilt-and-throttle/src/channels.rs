@@ -1,20 +1,23 @@
 use tokio::sync::broadcast::{Receiver, Sender};
 
-use crate::threads::{Command, PollingEvent};
+use crate::threads::{Command, FeederEvent, PollingEvent};
 
 pub struct Channels {
-    pub polling: Channel<PollingEvent>,
+    pub polling_events: Channel<PollingEvent>,
     pub commands: Channel<Command>,
+    pub feeder_events: Channel<FeederEvent>,
 }
 
 impl Channels {
     pub fn new() -> Channels {
         let (polling, _) = tokio::sync::broadcast::channel(100);
         let (commands, _) = tokio::sync::broadcast::channel(100);
+        let (feeder, _) = tokio::sync::broadcast::channel(100);
 
         Channels {
-            polling: Channel(polling),
+            polling_events: Channel(polling),
             commands: Channel(commands),
+            feeder_events: Channel(feeder)
         }
     }
 }

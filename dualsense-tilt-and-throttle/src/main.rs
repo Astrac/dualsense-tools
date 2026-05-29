@@ -13,7 +13,7 @@ use std::{
 use dualsense_tools::TiltEstimatorConfig;
 use spdlog::formatter::FullFormatter;
 
-use crate::term_ui::UiState;
+use crate::{feeder::backend, term_ui::UiState};
 
 /// In Hertz
 const POLL_FREQUENCY: u8 = 120;
@@ -30,19 +30,24 @@ async fn main() -> color_eyre::Result<()> {
 
     let channels = channels::Channels::new();
 
-    let mut poller = threads::Poller::new(
+    let mut poller = threads::Polling::new(
         TiltEstimatorConfig::<20>::default(),
         channels.commands.subscribe(),
-        channels.polling.dispatch(),
+        channels.polling_events.dispatch(),
         POLL_PERIOD,
     );
 
-    let mut feeder =
-        threads::Feeder::new(channels.polling.subscribe(), channels.commands.subscribe());
+    let mut feeder = threads::Feeding::new(
+        backend::auto(),
+        channels.feeder_events.dispatch(),
+        channels.polling_events.subscribe(),
+        channels.commands.subscribe(),
+    );
 
     let ui_state = Arc::new(Mutex::new(UiState::new()));
-    let mut ui_updater = threads::UIUpdater::new(
-        channels.polling.subscribe(),
+    let mut ui_updater = threads::UpdatingUI::new(
+        channels.feeder_events.subscribe(),
+        channels.polling_events.subscribe(),
         channels.commands.subscribe(),
         ui_state.clone(),
     );
@@ -74,7 +79,6 @@ fn init_log() -> color_eyre::Result<()> {
     spdlog::init_log_crate_proxy()?;
     let formatter = Box::new(FullFormatter::builder().source_location(false).build());
 
-    // Setting the new formatter for each sink of the default logger.
     for sink in spdlog::default_logger().sinks() {
         sink.set_formatter(formatter.clone());
     }

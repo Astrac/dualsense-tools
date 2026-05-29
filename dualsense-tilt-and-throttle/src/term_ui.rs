@@ -1,23 +1,36 @@
+use std::fmt::Display;
+
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, LineGauge, Paragraph};
 
+use crate::feeder::backend::BackendId;
 use crate::virtual_controller::VirtualControllerState;
 
 const GREEN_BG: Color = Color::Rgb(0, 128, 0);
 const RED_BG: Color = Color::Rgb(128, 0, 0);
 const RED_BG_TEXT: Color = Color::Rgb(200, 200, 200);
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[allow(dead_code)]
 pub enum FeederStatus {
     Running,
-    Error(&'static str),
+    Error(String),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+impl Display for FeederStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FeederStatus::Running => f.write_str("Running"),
+            FeederStatus::Error(msg) => f.write_str(format!("Error - {msg}").as_str())
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct FeederState {
-    id: &'static str,
-    status: FeederStatus,
+    pub name: String,
+    pub backend: BackendId,
+    pub status: FeederStatus,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -26,7 +39,7 @@ pub enum DualsenseStatus {
     Disconnected,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct UiState {
     pub virtual_controller: VirtualControllerState,
     pub feeder: FeederState,
@@ -39,7 +52,8 @@ impl UiState {
             virtual_controller: VirtualControllerState::default(),
             dualsense: DualsenseStatus::Disconnected,
             feeder: FeederState {
-                id: "TODO",
+                name: "No feeder running".to_owned(),
+                backend: BackendId::Unsupported,
                 status: FeederStatus::Running,
             },
         }
@@ -79,9 +93,14 @@ pub fn render(state: &UiState) -> impl FnMut(&mut Frame) {
 fn render_diagnostics(frame: &mut Frame<'_>, feeder_info_area: Rect, state: &UiState) {
     frame.render_widget(Block::bordered().title("Diagnostics"), feeder_info_area);
 
-    let layout = Layout::vertical([Constraint::Length(1); 3]).spacing(0);
-    let [dualsense_status_area, tilt_emulation_area, feeder_id_area] =
-        feeder_info_area.inner(Margin::new(3, 2)).layout(&layout);
+    let layout = Layout::vertical([Constraint::Length(1); 5]).spacing(0);
+    let [
+        dualsense_status_area,
+        tilt_emulation_area,
+        feeder_id_area,
+        backend_id_area,
+        feeder_status_area,
+    ] = feeder_info_area.inner(Margin::new(3, 2)).layout(&layout);
 
     frame.render_widget(
         Paragraph::new(format!(
@@ -108,8 +127,18 @@ fn render_diagnostics(frame: &mut Frame<'_>, feeder_info_area: Rect, state: &UiS
     );
 
     frame.render_widget(
-        Paragraph::new(format!("Virtual device feeder: {:?}", state.feeder.id)),
+        Paragraph::new(format!("Configuration: {}", state.feeder.name)),
         feeder_id_area,
+    );
+
+    frame.render_widget(
+        Paragraph::new(format!("Device emulation: {}", state.feeder.backend)),
+        backend_id_area,
+    );
+
+    frame.render_widget(
+        Paragraph::new(format!("Device status: {}", state.feeder.status)),
+        feeder_status_area,
     );
 }
 

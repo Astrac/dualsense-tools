@@ -1,34 +1,37 @@
+use std::sync::{Arc, Mutex};
+
 use crate::{
-    feeder::{Feeder, backend::Backend, config::FeederConfig},
+    feeder::{backend::{Backend, BackendError}, config::FeederConfig},
     virtual_controller::VirtualControllerState,
 };
 
-pub struct ConfiguredFeeder<'a, B: Backend> {
-    backend: &'a mut B,
-    pub config: &'a FeederConfig,
+pub struct Feeder<B: Backend> {
+    pub backend: Arc<Mutex<B>>,
+    pub config: FeederConfig,
 }
 
-impl<'a, B: Backend> ConfiguredFeeder<'a, B> {
-    pub fn new(backend: &'a mut B, config: &'a FeederConfig) -> ConfiguredFeeder<'a, B> {
-        ConfiguredFeeder { backend, config }
+impl<B: Backend> Feeder<B> {
+    pub fn new(backend: Arc<Mutex<B>>, config: FeederConfig) -> Result<Feeder<B>, BackendError> {
+        backend.lock().unwrap().set_layout(&config)?;
+        Ok(Feeder { backend, config })
     }
-}
 
-impl<'a, B: Backend> Feeder for ConfiguredFeeder<'a, B> {
-    type Error = B::Error;
+    pub fn feed(&mut self, state: &VirtualControllerState) -> Result<(), BackendError> {
+        let mut backend = self.backend.lock().unwrap();
 
-    fn feed(&mut self, state: &VirtualControllerState) -> Result<(), Self::Error> {
         for (idx, btn) in self.config.buttons.iter().enumerate() {
-            self.backend.set_button(idx, state.get_button(btn))?;
+            backend.set_button(idx, state.get_button(btn))?;
         }
 
         for (idx, axis) in self.config.axes.iter().enumerate() {
-            self.backend.set_axis(idx, state.get_axis(axis))?;
+            backend.set_axis(idx, state.get_axis(axis))?;
         }
 
         if self.config.hat {
-            self.backend.set_hat(state.hat)?;
+            backend.set_hat(state.hat)?;
         }
+
+        backend.commit()?;
 
         Ok(())
     }

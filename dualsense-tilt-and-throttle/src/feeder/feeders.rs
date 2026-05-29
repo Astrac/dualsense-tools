@@ -22,7 +22,7 @@ impl Feeders {
         })
     }
 
-    pub fn next<'a>(&'a mut self) -> &'a FeederConfig {
+    pub fn next(&mut self) -> &FeederConfig {
         self.selected = (self.selected + 1) % self.feeders.len();
         &self.feeders[self.selected]
     }

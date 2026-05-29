@@ -16,7 +16,7 @@ pub enum PollingEvent {
     StateAvailable(VirtualControllerState),
 }
 
-pub struct Poller<const N: usize> {
+pub struct Polling<const N: usize> {
     tilt_estimator_config: TiltEstimatorConfig<N>,
     commands: Receiver<Command>,
     polling_events: Sender<PollingEvent>,
@@ -24,14 +24,14 @@ pub struct Poller<const N: usize> {
     device: Option<Dualsense>,
 }
 
-impl<const N: usize> Poller<N> {
+impl<const N: usize> Polling<N> {
     pub fn new(
         tilt_estimator_config: TiltEstimatorConfig<N>,
         commands: Receiver<Command>,
         polling_events: Sender<PollingEvent>,
         poll_period: Duration,
-    ) -> Poller<N> {
-        Poller {
+    ) -> Polling<N> {
+        Polling {
             tilt_estimator_config,
             commands,
             poll_period,
@@ -41,7 +41,7 @@ impl<const N: usize> Poller<N> {
     }
 }
 
-impl<const N: usize> Poller<N> {
+impl<const N: usize> Polling<N> {
     pub fn run(&mut self) -> Result<()> {
         let mut hid_api = hidapi::HidApi::new()?;
         log::info!("Hid API initialized");
